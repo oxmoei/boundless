@@ -73,8 +73,18 @@ source ~/.bashrc
 bento_cli --version
 ```
 
-
-
+Install Boundless CLI
+```
+cargo install --locked boundless-cli
+```
+```
+export PATH=$PATH:/root/.cargo/bin
+alias boundless='boundless-cli'
+source ~/.bashrc
+```
+```
+boundless -h
+```
 
 
 
@@ -311,4 +321,25 @@ Add the following variables to the `.env.testnet`.
 * `PRIVATE_KEY=`: Add your EVM wallet private key
 
 ![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
+
+```bash
+source <(just env testnet)
+```
+
+Deposit
+```
+source ~/.bashrc
+```
+Deposit ETH
+```
+boundless account deposit ETH_AMOUNT
+```
+* Deposit Balance: `boundless account balance`
+
+Deposit Stake
+```
+boundless account deposit-stake STAKE_AMOUNT
+```
+* Deposit Stake Balance: `boundless account stake-balance`
+
 
