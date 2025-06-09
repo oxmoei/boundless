@@ -3,12 +3,16 @@
 
 Dependecies:
 ```
+apt update && apt upgrade -y
 apt install build-essential libclang-dev cmake pkg-config libssl-dev ninja-build -y
 
 ```
 Install rustup:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+```
+. "$HOME/.cargo/env"
 ```
 Update rustup:
 ```
@@ -17,10 +21,6 @@ rustup update
 
 Install the Rust Toolchain:
 ```
-rustup default stable
-
-OR
-
 apt update
 apt install cargo
 ```
@@ -29,21 +29,6 @@ Verify Installation:
 Check that cargo is installed:
 ```bash
 cargo --version
-```
-
-
-Install Bento-client
-```
-cargo install --git https://github.com/risc0/risc0 --bin bento_cli
-```
-```
-echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
-```
-```
-source ~/.bashrc
-```
-```
-bento_cli --version
 ```
 
 
@@ -70,6 +55,26 @@ Install `cargo-risczero`:
 cargo install cargo-risczero
 rzup install cargo-risczero
 ```
+```
+rustup update
+```
+
+Install Bento-client
+```
+cargo install --git https://github.com/risc0/risc0 --bin bento_cli
+```
+```
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+```
+```
+source ~/.bashrc
+```
+```
+bento_cli --version
+```
+
+
+
 
 
 
@@ -189,8 +194,8 @@ services:
   gpu_prove_agent0:
     <<: *agent-common
     runtime: nvidia
-    mem_limit: 4G
-    cpus: 4
+    mem_limit: 32G
+    cpus: 32
     entrypoint: /app/agent -t prove
     deploy:
       resources:
@@ -203,8 +208,8 @@ services:
   gpu_prove_agent1:
     <<: *agent-common
     runtime: nvidia
-    mem_limit: 4G
-    cpus: 4
+    mem_limit: 32G
+    cpus: 32
     entrypoint: /app/agent -t prove
     deploy:
       resources:
@@ -217,8 +222,8 @@ services:
   gpu_prove_agent2:
     <<: *agent-common
     runtime: nvidia
-    mem_limit: 4G
-    cpus: 4
+    mem_limit: 32G
+    cpus: 32
     entrypoint: /app/agent -t prove
     deploy:
       resources:
@@ -231,8 +236,8 @@ services:
   gpu_prove_agent3:
     <<: *agent-common
     runtime: nvidia
-    mem_limit: 4G
-    cpus: 4
+    mem_limit: 32G
+    cpus: 32
     entrypoint: /app/agent -t prove
     deploy:
       resources:
@@ -294,4 +299,16 @@ volumes:
   broker-data:
 ```
 
+
+Configure Network
+* Sepolia:
+```bash
+nano .env.testnet
+```
+Add the following variables to the `.env.testnet`.
+* `RPC_URL=""`: To get Ethereum Sepolia rpc url, Use third-parties .e.g Alchemy or run your own [Geth Node](https://github.com/0xmoei/geth-prysm-node/)
+* RPC has to be between `""`
+* `PRIVATE_KEY=`: Add your EVM wallet private key
+
+![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
 
