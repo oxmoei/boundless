@@ -13,10 +13,19 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
 
 
-Dependecies:
+## Dependecies:
+### Install & Update Packages
+```bash
+apt update && sudo apt upgrade -y
+### Install & Update Packages
+```bash
+sudo apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build  -y
 ```
-apt update && apt upgrade -y
-apt install build-essential libclang-dev cmake pkg-config libssl-dev ninja-build -y
+
+### Clone Boundless Repo
+```bash
+git clone https://github.com/boundless-xyz/boundless
+```
 
 ```
 Install rustup:
