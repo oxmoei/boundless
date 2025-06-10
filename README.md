@@ -44,87 +44,54 @@ sudo ./scripts/setup.sh
 ```
 However we need to install some dependecies manually in the next steps.
 
-* Install rustup:
-```
+```console
+\\ Execute command lines one by one
+
+# Install rustup:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-```
 . "$HOME/.cargo/env"
-```
 
-* Update rustup:
-```
+# Update rustup:
 rustup update
-```
 
-* Install the Rust Toolchain:
-```
+# Install the Rust Toolchain:
 apt update
 apt install cargo
-```
 
-* Verify Cargo Installation:
-```bash
+# Verify Cargo:
 cargo --version
-```
 
-* Install `rzup`:
-```bash
+# Install rzup:
 curl -L https://risczero.com/install | bash
-```
-```
 source ~/.bashrc
-```
 
-* Verify `rzup` is installed:
-```
+# Verify rzup:
 rzup --version
-```
 
-* Install RISC Zero Rust Toolchain:
-```bash
+# Install RISC Zero Rust Toolchain:
 rzup install rust
-```
 
-* Install `cargo-risczero`:
-```bash
+# Install cargo-risczero:
 cargo install cargo-risczero
 rzup install cargo-risczero
-```
 
-* Update `rustup`:
-```
+# Update rustup:
 rustup update
-```
 
-* Install Bento-client:
-```
+# Install Bento-client:
 cargo install --git https://github.com/risc0/risc0 --bin bento_cli
-```
-```
 echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
-```
-```
 source ~/.bashrc
-```
-```
 bento_cli --version
-```
 
-* Install Boundless CLI:
-```
+# Install Boundless CLI:
 cargo install --locked boundless-cli
-```
-```
 export PATH=$PATH:/root/.cargo/bin
 source ~/.bashrc
-```
 
-* Verify Installation:
-```
+# Verify boundless-cli:
 boundless-cli -h
 ```
-
 
 
 compose.yml:
