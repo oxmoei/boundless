@@ -25,62 +25,79 @@ sudo apt install curl iptables build-essential git wget lz4 jq make gcc nano aut
 ### Clone Boundless Repo
 ```bash
 git clone https://github.com/boundless-xyz/boundless
+cd boundless
+git checkout release-0.9
 ```
 
+### Install Dependecies
+To run a Boundless prover, you'll need the following dependencies:
+* Docker compose
+* GPU Drivers
+* Docker Nvidia Support
+* Rust programming language
+* `Just` command runner
+* CUDA Tollkit
+
+For a quick set up of Boundless dependencies on Ubuntu 22.04 LTS, you can run:
+```bash
+sudo ./scripts/setup.sh
 ```
-Install rustup:
+However we need to install some dependecies manually in the next steps.
+
+* Install rustup:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 ```
 . "$HOME/.cargo/env"
 ```
-Update rustup:
+
+* Update rustup:
 ```
 rustup update
 ```
 
-Install the Rust Toolchain:
+* Install the Rust Toolchain:
 ```
 apt update
 apt install cargo
 ```
 
-Verify Installation:
-Check that cargo is installed:
+* Verify Cargo Installation:
 ```bash
 cargo --version
 ```
 
-
-Step 1: Install the RISC Zero Toolchain
-Install `rzup`:
+* Install `rzup`:
 ```bash
 curl -L https://risczero.com/install | bash
 ```
 ```
 source ~/.bashrc
 ```
-Verify `rzup` is installed:
+
+* Verify `rzup` is installed:
 ```
 rzup --version
 ```
-Install the RISC Zero Rust Toolchain:
+
+* Install RISC Zero Rust Toolchain:
 ```bash
 rzup install rust
 ```
 
-Install `cargo-risczero`:
-
+* Install `cargo-risczero`:
 ```bash
 cargo install cargo-risczero
 rzup install cargo-risczero
 ```
+
+* Update `rustup`:
 ```
 rustup update
 ```
 
-Install Bento-client
+* Install Bento-client:
 ```
 cargo install --git https://github.com/risc0/risc0 --bin bento_cli
 ```
@@ -94,17 +111,18 @@ source ~/.bashrc
 bento_cli --version
 ```
 
-Install Boundless CLI
+* Install Boundless CLI:
 ```
 cargo install --locked boundless-cli
 ```
 ```
 export PATH=$PATH:/root/.cargo/bin
-alias boundless='boundless-cli'
 source ~/.bashrc
 ```
+
+* Verify Installation:
 ```
-boundless -h
+boundless-cli -h
 ```
 
 
