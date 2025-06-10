@@ -3,8 +3,8 @@
 ## Boundless Prover market
 First, you need to know how **Boundless Prover market** actually works to realize what you are doing.
 * **Requester Submits Ask**: A requester creates a task or computation `order` and submits an `ask` on Boundless, locking funds to incentivize participation.
-* **Prover Places Bid**: A prover selects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the ask’s locked funds or other provers’ bids.
-* **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower bid, sufficient stake, or meeting specific criteria), the prover locks the order, committing to perform the computational work.
+* **Prover Places Bid**: A prover selects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the `ask`’s locked funds or other provers’ `bid`s.
+* **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower `bid`, sufficient stake, or meeting specific criteria), the prover locks the `order`, committing to perform the computational work.
 * **Prover Generates Proof**: The prover completes the task and submits the `proof` to the network.
 * **Verifier Checks Proof**: Verifiers validate the `proof` to ensure it meets the `orders`’s requirements and protocol standards.
 * **Order Fulfillment**: If the `proof` is valid, the prover receives the locked funds as a reward, and the requester receives the verified result, completing the process.
