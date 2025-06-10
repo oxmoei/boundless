@@ -17,7 +17,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 ### Install & Update Packages
 ```bash
 apt update && sudo apt upgrade -y
-sudo apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build  -y
+apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build -y
 ```
 
 ### Clone Boundless Repo
@@ -38,7 +38,7 @@ To run a Boundless prover, you'll need the following dependencies:
 
 For a quick set up of Boundless dependencies on Ubuntu 22.04 LTS, you can run:
 ```bash
-sudo ./scripts/setup.sh
+bash ./scripts/setup.sh
 ```
 However, we need to install some dependecies manually:
 
@@ -107,6 +107,11 @@ nvidia-smi
 
 ![image](https://github.com/user-attachments/assets/26c57f43-0fbf-4068-949c-b2ea31273998)
 
+* Check your system GPUs IDs (e.g. 0 through X):
+```bash
+nvidia-smi -L
+```
+
 ### CPU & RAM check (Realtime):
 To see the status of your CPU and RAM.
 ```
@@ -119,20 +124,33 @@ The best for real-time monitoring your GPUs in a seprated terminal while your pr
 nvtop
 ```
 
-### Configure Prover
-The `compose.yml` file defines all services within Prover
-```bash
-nano compose.yml
-```
+## Configure Prover
+The `compose.yml` file defines all services within Prover.
+* Default `compose.yml` only supporting single-GPU and default CPU, RAM utilization.
+* Edit `compose.yml` by this command:
+  ```bash
+  nano compose.yml
+  ```
 
-```yml
-
-```
-
-
-
-
-
+To add GPUs or modify CPU,RAM to maximize utilization, replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
+* You see that on `gpu_prove_agent0`, then GPU 0 is listed with the device ID of `0`, memory limited to `4G`, and CPU set as `4` cores for each GPU instance:
+   ```yml
+     gpu_prove_agent0:
+       <<: *agent-common
+       runtime: nvidia
+       mem_limit: 4G
+       cpus: 4
+       entrypoint: /app/agent -t prove
+       deploy:
+         resources:
+           reservations:
+             devices:
+               - driver: nvidia
+                 device_ids: ['0']
+                 capabilities: [gpu]
+   ```
+* You can modify them based on your hardware but don't maximize and keep always keep some for other jobs.
+* You can add/remove `gpu_prove_agentX` for more or less than 4 GPUs
 
 
 
@@ -141,17 +159,30 @@ Boundless is comprised of two major components:
 * `Bento` is the local proving infrastructure. Bento will take requests, prove them and return the result.
 * `Broker` interacts with the Boundless market. `Broker` can submit or request proves from the market.
 
-### Run Bento
+## Run Bento
 To get started with a test proof on a new proving machine, let's run `Bento` to benchmark our GPUs:
+```
+just bento
+```
+* This will spin up `bento` without the `broker`.
 
-sudo apt update
-sudo apt install postgresql postgresql-client
-psql --version
+Check the logs :
+```bash
+just bento logs
+```
 
+Run a test proof:
+```bash
+RUST_LOG=info bento_cli -c 32
+```
+* If everything works well, you should see something like the following as `Job Done!`:
+
+![image](https://github.com/user-attachments/assets/a67fdfb0-3d22-4a4a-b47a-247567df0d45)
 
 
 ## Configure Network
-* Sepolia:
+### Sepolia:
+Configure `.env.testnet` file:
 ```bash
 nano .env.testnet
 ```
@@ -162,25 +193,31 @@ Add the following variables to the `.env.testnet`.
 
 ![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
 
+Inject changes:
 ```bash
 source <(just env testnet)
 ```
+* After each terminal close, you have to run this to inject the network before running `broker`.
 
-Deposit
+## Deposit Stake
 ```
 source ~/.bashrc
 ```
-Deposit ETH
-```
-boundless account deposit ETH_AMOUNT
-```
-* Deposit Balance: `boundless account balance`
 
-Deposit Stake
+Deposit ETH:
 ```
-boundless account deposit-stake STAKE_AMOUNT
+boundless-cli account deposit ETH_AMOUNT
 ```
-* Deposit Stake Balance: `boundless account stake-balance`
+* Deposit Balance: `boundless-cli account balance`
+
+Deposit Stake:
+```
+boundless-cli account deposit-stake STAKE_AMOUNT
+```
+* Deposit Stake Balance: `boundless-cli account stake-balance`
 
 
 
+sudo apt update
+sudo apt install postgresql postgresql-client
+psql --version
