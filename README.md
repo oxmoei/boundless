@@ -3,6 +3,7 @@
 ## Boundless Prover market
 First, you need to know how **Boundless Prover market** actually works to realize what you are doing.
 * **Requester Submits Ask**: A requester (e.g. developer) creates a task or computation `order` and submits an `ask` on Boundless, locking funds to incentivize participation.
+* **Prover Stakes USDC**: The Boundless market requires funds (USDC) deposited as stake before a prover can `bid` on requests.
 * **Prover Places Bid**: A prover selects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the `ask`’s locked funds or other provers’ `bid`s.
 * **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower `bid`, sufficient stake, or meeting specific criteria), the prover locks the `order`, committing to perform the computational work.
 * **Prover Generates Proof**: The prover completes the task and submits the `proof` to the network.
@@ -197,24 +198,45 @@ Inject changes:
 ```bash
 source <(just env testnet)
 ```
-* After each terminal close, you have to run this to inject the network before running `broker`.
+* After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
 ## Deposit Stake
 ```
 source ~/.bashrc
 ```
 
-Deposit ETH:
+**Deposit ETH:**
 ```
 boundless-cli account deposit ETH_AMOUNT
 ```
 * Deposit Balance: `boundless-cli account balance`
 
-Deposit Stake:
+**Deposit Stake:**
 ```
 boundless-cli account deposit-stake STAKE_AMOUNT
 ```
 * Deposit Stake Balance: `boundless-cli account stake-balance`
+
+##  Run Broker
+You can now start `broker` (which runs both `bento` + `broker` i.e. the full proving stack!):
+```bash
+just broker
+```
+Check the total proving logs:
+```bash
+just broker logs
+```
+Check the `broker` logs, which has the most important logs of your order fulfillments:
+```
+docker compose logs -f broker
+```
+
+## Broker Configuration and Optimize
+`broker.toml` has the most important settings to configure how your broker interact on-chain and compete with other provers.
+```
+nano broker.toml
+```
+* You can see an example of the official `broker.toml` [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
 
 
 
