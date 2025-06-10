@@ -42,7 +42,7 @@ For a quick set up of Boundless dependencies on Ubuntu 22.04 LTS, you can run:
 ```bash
 sudo ./scripts/setup.sh
 ```
-However we need to install some dependecies manually in the next steps.
+However, we need to install some dependecies manually:
 
 ```console
 \\ Execute command lines one by one
