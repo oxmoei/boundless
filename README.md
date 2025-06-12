@@ -11,6 +11,24 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * **Slashing**: If the `proof` is invalid, incomplete, or the prover fails to deliver (e.g., due to low computational power, malicious behavior or timeout), the slashing mechanism activates, penalizing the prover by forfeiting a part of their staked funds.
 * **Order Fulfillment**: If the `proof` is valid, the prover receives the locked funds as a reward, and the requester receives the verified result, completing the process.
 
+## Requirements
+### Hardware
+* CPU - 16 threads, reasonable single core boost performance (>3Ghz)
+* Memory - 32 GB
+* Disk - 100 GB NVME/SSD
+* GPU - 10x NVIDIA RTX 3080 or T4 with min 8GB vRAM to be competetive
+  * You can try it out with single GPU 12-24GB vRAM, may not be very good at competing but yet can prove i believe.
+
+### Software
+* Supported: Ubuntu 20.04/22.04
+* Experimental: Ubuntu 24.04
+* If you are running on Windows os locally, install Ubuntu 22 WSL using this [Guide](https://github.com/0xmoei/Install-Linux-on-Windows)
+
+## Rent GPU
+* Beginners in renting GPU can use this [guide](https://github.com/0xmoei/Rent-and-Config-GPU)
+* You have to rent a `Ubuntu VM` template (and NOT `CUDA` or `Pytorch`) GPU
+* As my research, [Vast.ai](https://cloud.vast.ai/?ref_id=228875) was the only cheap GPU provider supporting `Ubuntu VM` templates with crypto payments.
+* Prover installation is using `Docker`, so `CUDA` or `Pytorch` templates for cloud GPUs is not possible because they also run your GPU instance in a Docker and you can't run Prover Docker inside your GPU instance Docker.
 
 
 
