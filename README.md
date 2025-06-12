@@ -53,7 +53,7 @@ apt install curl iptables build-essential git wget lz4 jq make gcc nano automake
 ```bash
 git clone https://github.com/boundless-xyz/boundless
 cd boundless
-git checkout release-0.9
+git checkout release-0.10
 ```
 
 ### Install Dependecies
