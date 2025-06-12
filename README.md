@@ -2,9 +2,9 @@
 
 ## Boundless Prover market
 First, you need to know how **Boundless Prover market** actually works to realize what you are doing.
-* **Requester Submits Ask**: A requester (e.g. developer) creates a task or computation `order` and submits an `ask` on Boundless, locking funds to incentivize participation.
+* **Requester Submits Ask**: A requester (e.g. developer) creates a task or a computation request as an `order` on Boundless, offering funds in ETH or ERC-20 to incentivize participation.
 * **Prover Stakes USDC**: The Boundless market requires funds (USDC) deposited as stake before a prover can `bid` on requests.
-* **Prover Places Bid**: A prover selects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the `ask`’s locked funds or other provers’ `bid`s.
+* **Prover Places Bid**: A prover detects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the request’s locked funds or other provers’ `bid`s.
 * **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower `bid`, sufficient stake, or meeting specific criteria), the prover locks the order committing to prove it within a set deadline (`lock-timeout`) using previously staked `USDC`, so other provers can't touch it until it perform computational power.
 * **Prover Generates Proof**: The prover completes the task and submits the `proof` to the network.
 * **Slashing**: If the `proof` is invalid, incomplete, or the prover fails to deliver (e.g., due to low computational power, malicious behavior or timeout), the slashing mechanism activates, penalizing the prover by forfeiting a part of their staked `USDC` funds.
@@ -18,8 +18,10 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * CPU - 16 threads, reasonable single core boost performance (>3Ghz)
 * Memory - 32 GB
 * Disk - 100 GB NVME/SSD
-* GPU - 10x NVIDIA RTX 3080 or T4 with min 8GB vRAM to be competetive
-  * You can try it out with single GPU 12-24GB vRAM, may not be very good at competing but yet can prove i believe.
+* GPU
+  * Minimum: one 8GB vRAM GPU
+  * Recommended to be competetive: 10x GPU with min 8GB vRAM
+  * Recomended GPU models are 4090, 5090 and L4.
 
 ### Software
 * Supported: Ubuntu 20.04/22.04
@@ -327,7 +329,7 @@ psql --version
 
 Benchmark by simulating an order id: (make shure Bento is running)
 ```bash
-boundless proving benchmark --request-ids <IDS>
+boundless-cli proving benchmark --request-ids <IDS>
 ```
 * You can use the order IDs listed [here](https://explorer.beboundless.xyz/orders)
 * You can add multiples by adding comma-seprated ones.
@@ -335,6 +337,7 @@ boundless proving benchmark --request-ids <IDS>
 
 ![image](https://github.com/user-attachments/assets/04ca61f7-a658-4cb8-b09b-928bbe4694d4)
 
+* As in the image above, the prover is estimated to handle ~430,000 cycles per second (~430 khz). 
 * Use a lower amount of the recommented `peak_prove_khz` in your `broker.toml` (I explain it more in the next step)
 
 ---
