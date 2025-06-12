@@ -333,6 +333,10 @@ boundless proving benchmark --request-ids <IDS>
 * You can add multiples by adding comma-seprated ones.
 * Recommended to pick a few requests of varying sizes and programs, biased towards larger proofs for a more representative benchmark.
 
+![image](https://github.com/user-attachments/assets/04ca61f7-a658-4cb8-b09b-928bbe4694d4)
+
+* Use a lower amount of the recommented `peak_prove_khz` in your `broker.toml` (I explain it more in the next step)
+
 ---
 
 ## Broker Optimization
@@ -358,10 +362,9 @@ Once your broker is running, before the gpu-based prover gets into work, broker 
 ### Other settings in `broker.toml`
 Read the more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
 * `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
-  * Will teach you how to set it up in the next step
+  * You can set the `peak_prove_khz` by following the previous step (Benchmarking Bento)
 
 ---
-
 
 # Safe Update or Stop Prover
 ### 1. Check locked orders
