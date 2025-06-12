@@ -294,6 +294,9 @@ just broker logs
 Check the `broker` logs, which has the most important logs of your `order` lockings and fulfillments:
 ```
 docker compose logs -f broker
+
+# For last 100 logs
+docker compose logs -fn 100
 ```
 
 ---
@@ -314,13 +317,21 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 * Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
 
 
-### Benchmarking GPUs
+### Benchmarking Bento
 Install psql:
 ```bash
 sudo apt update
 apt install postgresql postgresql-client
 psql --version
 ```
+
+Benchmark by simulating an order id: (make shure Bento is running)
+```bash
+boundless proving benchmark --request-ids <IDS>
+```
+* You can use the order IDs listed [here](https://explorer.beboundless.xyz/orders)
+* You can add multiples by adding comma-seprated ones.
+* Recommended to pick a few requests of varying sizes and programs, biased towards larger proofs for a more representative benchmark.
 
 ---
 
@@ -347,8 +358,8 @@ Once your broker is running, before the gpu-based prover gets into work, broker 
 ### Other settings in `broker.toml`
 Read the more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
 * `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
-  * Will teach you how to set it up in the next step.
-* 
+  * Will teach you how to set it up in the next step
+
 ---
 
 
