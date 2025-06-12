@@ -11,6 +11,8 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * **Slashing**: If the `proof` is invalid, incomplete, or the prover fails to deliver (e.g., due to low computational power, malicious behavior or timeout), the slashing mechanism activates, penalizing the prover by forfeiting a part of their staked funds.
 * **Order Fulfillment**: If the `proof` is valid, the prover receives the locked funds as a reward, and the requester receives the verified result, completing the process.
 
+---
+
 ## Requirements
 ### Hardware
 * CPU - 16 threads, reasonable single core boost performance (>3Ghz)
@@ -24,13 +26,15 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * Experimental: Ubuntu 24.04
 * If you are running on Windows os locally, install Ubuntu 22 WSL using this [Guide](https://github.com/0xmoei/Install-Linux-on-Windows)
 
+---
+
 ## Rent GPU
 * Beginners in renting GPU can use this [guide](https://github.com/0xmoei/Rent-and-Config-GPU)
 * You have to rent a `Ubuntu VM` template (and NOT `CUDA` or `Pytorch`) GPU
 * As my research, [Vast.ai](https://cloud.vast.ai/?ref_id=228875) was the only cheap GPU provider supporting `Ubuntu VM` templates with crypto payments.
 * Prover installation is using `Docker`, so `CUDA` or `Pytorch` templates for cloud GPUs is not possible because they also run your GPU instance in a Docker and you can't run Prover Docker inside your GPU instance Docker.
 
-
+---
 
 ## Dependecies
 ### Install & Update Packages
@@ -112,6 +116,8 @@ source ~/.bashrc
 boundless-cli -h
 ```
 
+---
+
 ## System Hardware Check
 * In the beginning, to configure your Prover, You need to know what's your GPUs IDs (if multiple GPUs), CPU cores and RAM.
 * Also the following tools are best to monitor your hardware during proving.
@@ -143,6 +149,8 @@ The best for real-time monitoring your GPUs in a seprated terminal while your pr
 nvtop
 ```
 
+---
+
 ## Configure Prover
 The `compose.yml` file defines all services within Prover.
 * Default `compose.yml` only supporting single-GPU and default CPU, RAM utilization.
@@ -171,12 +179,14 @@ To add GPUs or modify CPU,RAM to maximize utilization, replace the current compo
 * You can modify them based on your hardware but don't maximize and keep always keep some for other jobs.
 * You can add/remove `gpu_prove_agentX` for more or less than 4 GPUs
 
-
+---
 
 ## Running Prover
 Boundless is comprised of two major components:
 * `Bento` is the local proving infrastructure. Bento will take requests, prove them and return the result.
 * `Broker` interacts with the Boundless market. `Broker` can submit or request proves from the market.
+
+---
 
 ## Run Bento
 To get started with a test proof on a new proving machine, let's run `Bento` to benchmark our GPUs:
@@ -198,6 +208,7 @@ RUST_LOG=info bento_cli -c 32
 
 ![image](https://github.com/user-attachments/assets/a67fdfb0-3d22-4a4a-b47a-247567df0d45)
 
+---
 
 ## Configure Network
 ### Sepolia:
@@ -218,6 +229,8 @@ source <(just env testnet)
 ```
 * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
+---
+
 ## Deposit Stake
 ```
 source ~/.bashrc
@@ -235,6 +248,8 @@ boundless-cli account deposit-stake STAKE_AMOUNT
 ```
 * Deposit Stake Balance: `boundless-cli account stake-balance`
 
+---
+
 ##  Run Broker
 You can now start `broker` (which runs both `bento` + `broker` i.e. the full proving stack!):
 ```bash
@@ -249,6 +264,8 @@ Check the `broker` logs, which has the most important logs of your order fulfill
 docker compose logs -f broker
 ```
 
+---
+
 ## Broker Configuration and Optimize
 * Broker is not the prover, it's for onchain activities like locking orders or setting amount of stake bids, etc.
 * `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
@@ -257,7 +274,7 @@ nano broker.toml
 ```
 * You can see an example of the official `broker.toml` [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
 
-
+---
 
 
 
