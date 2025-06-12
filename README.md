@@ -232,7 +232,8 @@ docker compose logs -f broker
 ```
 
 ## Broker Configuration and Optimize
-`broker.toml` has the most important settings to configure how your broker interact on-chain and compete with other provers.
+* Broker is not the prover, it's for onchain activities like locking orders or setting amount of stake bids, etc.
+* `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
 ```
 nano broker.toml
 ```
@@ -240,6 +241,10 @@ nano broker.toml
 
 
 
+
+
+```
 sudo apt update
 sudo apt install postgresql postgresql-client
 psql --version
+```
