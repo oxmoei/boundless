@@ -5,11 +5,11 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * **Requester Submits Ask**: A requester (e.g. developer) creates a task or computation `order` and submits an `ask` on Boundless, locking funds to incentivize participation.
 * **Prover Stakes USDC**: The Boundless market requires funds (USDC) deposited as stake before a prover can `bid` on requests.
 * **Prover Places Bid**: A prover selects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the `ask`’s locked funds or other provers’ `bid`s.
-* **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower `bid`, sufficient stake, or meeting specific criteria), the prover locks the `order`, committing to perform the computational work.
+* **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower `bid`, sufficient stake, or meeting specific criteria), the prover locks the order committing to prove it within a set deadline (`lock-timeout`) using previously staked `USDC`, so other provers can't touch it until it perform computational power.
 * **Prover Generates Proof**: The prover completes the task and submits the `proof` to the network.
-* **Verifier Checks Proof**: Verifiers validate the `proof` to ensure it meets the `orders`’s requirements and protocol standards.
-* **Slashing**: If the `proof` is invalid, incomplete, or the prover fails to deliver (e.g., due to low computational power, malicious behavior or timeout), the slashing mechanism activates, penalizing the prover by forfeiting a part of their staked funds.
+* **Slashing**: If the `proof` is invalid, incomplete, or the prover fails to deliver (e.g., due to low computational power, malicious behavior or timeout), the slashing mechanism activates, penalizing the prover by forfeiting a part of their staked `USDC` funds.
 * **Order Fulfillment**: If the `proof` is valid, the prover receives the locked funds as a reward, and the requester receives the verified result, completing the process.
+* `bid ` are actually `mcycle_price` (the price of each 1 million cycles the prover proves). I'll tell you more about this later in the guide.
 
 ---
 
@@ -35,6 +35,10 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * Prover installation is using `Docker`, so `CUDA` or `Pytorch` templates for cloud GPUs is not possible because they also run your GPU instance in a Docker and you can't run Prover Docker inside your GPU instance Docker.
 
 ---
+# Setup
+Here is the step by step guide to Install and run your Prover smoothly, but please pay attention to these notes:
+* Read every single word of this guide, if you really want to know what you are doing.
+* There is an #Optimize Prover section where you need to ready after Setup.
 
 ## Dependecies
 ### Install & Update Packages
@@ -139,13 +143,13 @@ nvidia-smi -L
 
 ### CPU & RAM check (Realtime):
 To see the status of your CPU and RAM.
-```
+```bash
 htop
 ```
 
 ### GPU Check (Realtime):
 The best for real-time monitoring your GPUs in a seprated terminal while your prover is proving.
-```
+```bash
 nvtop
 ```
 
@@ -158,8 +162,9 @@ The `compose.yml` file defines all services within Prover.
   ```bash
   nano compose.yml
   ```
+* The current `compose.yml` is set for `1` GPU by default.
 
-To add GPUs or modify CPU,RAM to maximize utilization, replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
+To add more GPUs or modify CPU and RAM sepcified to each GPU (default numbs are fine), replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
 * You see that on `gpu_prove_agent0`, then GPU 0 is listed with the device ID of `0`, memory limited to `4G`, and CPU set as `4` cores for each GPU instance:
    ```yml
      gpu_prove_agent0:
@@ -177,7 +182,9 @@ To add GPUs or modify CPU,RAM to maximize utilization, replace the current compo
                  capabilities: [gpu]
    ```
 * You can modify them based on your hardware but don't maximize and keep always keep some for other jobs.
-* You can add/remove `gpu_prove_agentX` for more or less than 4 GPUs
+* You can add/remove `gpu_prove_agentX` for more or less than 4 GPUs.
+
+**Note**: `SEGMENT_SIZE` of the prover is set to `21` by default, which is compatible only with `>20GB vRAM` GPUs, if you went into any trouble with it, you can read the Segment Size section of the guide.
 
 ---
 
@@ -190,7 +197,7 @@ Boundless is comprised of two major components:
 
 ## Run Bento
 To get started with a test proof on a new proving machine, let's run `Bento` to benchmark our GPUs:
-```
+```bash
 just bento
 ```
 * This will spin up `bento` without the `broker`.
@@ -223,11 +230,36 @@ Add the following variables to the `.env.testnet`.
 
 ![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
 
-Inject changes:
+Inject `.env.testnet` changes to prover:
 ```bash
 source <(just env testnet)
 ```
 * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
+
+### Base Network:
+`.env.broker` is a custom environment file with more options to configure.
+Create `.env.broker`:
+```bash
+cp .env.broker-template .env.broker
+```
+
+Configure `.env.broker` file:
+```bash
+nano .env.broker
+```
+Add the following variables to the `.env.broker`.
+* `RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
+  * RPC has to be between `""`
+* `PRIVATE_KEY=`: Add your EVM wallet private key
+* Find the value of following variables [here](https://github.com/boundless-xyz/boundless/blob/main/contracts/deployment.toml):
+  * `BOUNDLESS_MARKET_ADDRESS=`
+  * `SET_VERIFIER_ADDRESS=`
+  * `VERIFIER_ADDRESS=` (add it to .env manually)
+ 
+Inject `.env.broker` changes to prover:
+```
+source <(just env broker)
+```
 
 ---
 
@@ -259,27 +291,90 @@ Check the total proving logs:
 ```bash
 just broker logs
 ```
-Check the `broker` logs, which has the most important logs of your order fulfillments:
+Check the `broker` logs, which has the most important logs of your `order` lockings and fulfillments:
 ```
 docker compose logs -f broker
 ```
 
 ---
 
-## Broker Configuration and Optimize
-* Broker is not the prover, it's for onchain activities like locking orders or setting amount of stake bids, etc.
-* `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
+# Bento (Prover) & Broker Optimizations
+There are many factors to be optimized to win in provers competetion where you can read the official guide for [broker](https://docs.beboundless.xyz/provers/broker) or [prover](https://docs.beboundless.xyz/provers/performance-optimization)
+
+Here I simplified everything with detailed steps:
+
+## Segment Size (Prover)
+Larger segment sizes more proving (bento) performance, but require more GPU VRAM. To pick the right `SEGMENT_SIZE` for your GPU VRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
+
+![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
+
+### Setting SEGMENT_SIZE
+* `SEGMENT_SIZE` in `compose.yml` under the `exec_agent` service is `21`by default.
+* Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
+* Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
+
+
+### Benchmarking GPUs
+Install psql:
+```bash
+sudo apt update
+apt install postgresql postgresql-client
+psql --version
 ```
+
+---
+
+## Broker Optimization
+* Broker is a container of the whole prover, it's not proving itself, it's for onchain activities, and initializing with orders like locking orders or setting amount of stake bids, etc.
+* `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
+```bash
 nano broker.toml
 ```
 * You can see an example of the official `broker.toml` [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
 
+### Increasing Lock-in Rate
+Once your broker is running, before the gpu-based prover gets into work, broker must compete with other provers to lock-in the orders. Here is how to optimize broker to lock-in faster than other provers:
+
+1. Decreasing the `mcycle_price` would tune your Broker to `bid` at lower prices for proofs.
+* Once an order detected, the broker runs a preflight execution to estimate how many `cycles` the request needs. As you see in the image, a prover proved orders with millions or thousands of cycles.
+* `mcycle_price` is actually price of a prover for proving each 1 million cycles. Final price = `mcycle_price` x `cycles`
+* The less you set `mcycle_price`, the higher chance you outpace other provers.
+
+![image](https://github.com/user-attachments/assets/fab9cc79-362f-4a43-a461-258ffe0bfc1a)
+
+2. Increasing `lockin_priority_gas` to consume more gas to outrun other bidders. You might need to first remove `#` to uncomment it's line, then set the gas. It's based on Gwei.
+
+### Other settings in `broker.toml`
+Read the more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
+* `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
+  * Will teach you how to set it up in the next step.
+* 
 ---
 
 
+# Safe Update or Stop Prover
+### 1. Check locked orders
+Ensure either through the `broker` logs or [through indexer page of your prover](https://explorer.beboundless.xyz/provers/) that your broker does not have any incomplete locked orders before stopping or update, othervise you might get slashed for your staked assets.
 
+### 2. Stop the broker and optionally clean the database
+```bash
+just broker clean
+ 
+# Or stop the broker without cleaning volumes
+just broker down
 ```
-sudo apt update
-sudo apt install postgresql postgresql-client
-psql --version
+
+### 3. Update to the new version
+See [releases](https://github.com/boundless-xyz/boundless/releases) for latest tag to use.
+```bash
+git checkout <new_version_tag>
+# Example: git checkout v0.10.0
 ```
+
+### 4. Start the broker with the new version
+```bash
+just broker
+```
+
+
+
