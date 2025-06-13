@@ -143,6 +143,11 @@ nvidia-smi
 nvidia-smi -L
 ```
 
+### Number of CPU Cores and Threads:
+```
+lscpu
+```
+
 ### CPU & RAM check (Realtime):
 To see the status of your CPU and RAM.
 ```bash
@@ -342,7 +347,7 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 * `SEGMENT_SIZE` in `compose.yml` under the `exec_agent` service is `21`by default.
 * Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
 * Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
-
+* If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to **Configure Network** step to use `.env.broker` as your network configuration.
 
 ### Benchmarking Bento
 Install psql:
@@ -352,9 +357,9 @@ apt install postgresql postgresql-client
 psql --version
 ```
 
-Benchmark by simulating an order id: (make shure Bento is running)
+1. Benchmark by simulating an order id: (make sure Bento is running):
 ```bash
-boundless-cli proving benchmark --request-ids <IDS>
+boundless proving benchmark --request-ids <IDS>
 ```
 * You can use the order IDs listed [here](https://explorer.beboundless.xyz/orders)
 * You can add multiples by adding comma-seprated ones.
@@ -365,11 +370,36 @@ boundless-cli proving benchmark --request-ids <IDS>
 * As in the image above, the prover is estimated to handle ~430,000 cycles per second (~430 khz). 
 * Use a lower amount of the recommented `peak_prove_khz` in your `broker.toml` (I explain it more in the next step)
 
+> You can use `nvtop` command in a seprated terminal to check your GPU utilizations.
+
+2. Benchmark using Harness Test
+* Optionally you can benchmark GPUs by a ITERATION_COUNT:.
+```
+RUST_LOG=info bento_cli -c <ITERATION_COUNT>
+```
+`<ITERATION_COUNT>` is the number of times the synthetic guest is executed. A value of `4096` is a good starting point, however on smaller or less performant hosts, you may want to reduce this to `2048` or `1024` while performing some of your experiments. For functional testing, `32` is sufficient.
+
+* Check `khz` &  `cycles` proved in the harness test
+```
+bash scripts/job_status.sh JOB_ID
+```
+* replace `JOB_ID` with the one prompted to you when running a test.
+* Now you get the `hz` which has to be devided by 1000x to be in `khz` and the `cycles` it proved.
+* If got error `not_found`, it's cuz you didn't create `.env.broker` and the script is using `.env.broker` to query your `Segment_Size`, do `cp .env.broker-template .env.broker` to fix.
+
 ---
 
 ## Broker Optimization
-* Broker is a container of the whole prover, it's not proving itself, it's for onchain activities, and initializing with orders like locking orders or setting amount of stake bids, etc.
+
+* Broker is one of the containers of the prover, it's not proving itself, it's for onchain activities, and initializing with orders like locking orders or setting amount of stake bids, etc.
 * `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
+
+Copy the template to the main config file:
+```bash
+cp broker-template.toml broker.toml
+```
+
+Edit broker.toml file:
 ```bash
 nano broker.toml
 ```
