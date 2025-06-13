@@ -158,6 +158,7 @@ nvtop
 ---
 
 ## Configure Prover
+### Single GPU:
 The `compose.yml` file defines all services within Prover.
 * Default `compose.yml` only supporting single-GPU and default CPU, RAM utilization.
 * Edit `compose.yml` by this command:
@@ -166,8 +167,15 @@ The `compose.yml` file defines all services within Prover.
   ```
 * The current `compose.yml` is set for `1` GPU by default.
 
+### Multiple GPUs
+* 4 GPUs:
 To add more GPUs or modify CPU and RAM sepcified to each GPU (default numbs are fine), replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
-* You see that on `gpu_prove_agent0`, then GPU 0 is listed with the device ID of `0`, memory limited to `4G`, and CPU set as `4` cores for each GPU instance:
+
+* More/Less than 4 GPUs
+ Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/blob/main/add-remove-gpu.md) to add or remove the number of 4 GPUs in my custom compose.yml file
+
+### Modify CPU/RAM of each GPU
+* You see that on `gpu_prove_agent0`, GPU 0 is listed with the device ID of `0`, memory limited to `4G`, and CPU set as `4` cores for each GPU instance:
    ```yml
      gpu_prove_agent0:
        <<: *agent-common
@@ -183,10 +191,9 @@ To add more GPUs or modify CPU and RAM sepcified to each GPU (default numbs are 
                  device_ids: ['0']
                  capabilities: [gpu]
    ```
-* You can modify them based on your hardware but don't maximize and keep always keep some for other jobs.
-* You can add/remove `gpu_prove_agentX` for more or less than 4 GPUs.
+* While the default CPU/RAM for each GPU is enough, for single GPUs, you can increase them to increase efiiciency, but don't maximize and always keep some CPU/RAML for other jobs.
 
-**Note**: `SEGMENT_SIZE` of the prover is set to `21` by default, which is compatible only with `>20GB vRAM` GPUs, if you went into any trouble with it, you can read the Segment Size section of the guide.
+**Note**: `SEGMENT_SIZE` of the prover is set to `21` by default for each GPU, which is compatible only with `>20GB vRAM` GPUs, if you have less vRAM, you have to modify it, you can read the Segment Size section of the guide.
 
 ---
 
@@ -217,35 +224,51 @@ RUST_LOG=info bento_cli -c 32
 
 ![image](https://github.com/user-attachments/assets/a67fdfb0-3d22-4a4a-b47a-247567df0d45)
 
+* To check if all your GPUs are utilizing:
+  *  Increase `32` to `2048`/`4096`
+  *  Open new terminal with `nvtop` command
+  *  Run the test proof and monitor your GPUs utilization.
+
 ---
 
 ## Configure Network
-### Base:
-Configure `.env.testnet` file:
+Boundless is available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`, marking the first time real funds will be used in Boundless.
+
+
+Provers should ensure they configure their Proving Nodes to reduce the risk of accepting unprofitable requests or being slashed due to overcommitting proving resources. This typically involves configuring `mcycle_price`, `mcycle_price_stake_token`, `peak_prove_khz`, `max_concurrent_proofs` and other configuration values according to your pricing preferences and cluster size. Refer to broker-
+
+### Set Networks
+There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
+
+### Base Mainnet
+In this step I modify `.env.base`, you can replace any of above with it.
+
+* Configure `.env.base` file:
 ```bash
-nano .env.testnet
+nano .env.base
 ```
-Add the following variables to the `.env.testnet`.
+Add the following variables to the `.env.base`.
 * `RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps), [Quicknode](https://quicknode.com/signup?via=moei) or paid [Ankr](https://www.ankr.com/rpc/?utm_referral=LqL9Sv86Te). haven't tested third-party platforms myself yet, they might have some issue, so we might need to run our own node. I'll update this section soon.
 * RPC has to be between `""`
 * `PRIVATE_KEY=`: Add your EVM wallet private key
 
 ![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
 
-Inject `.env.testnet` changes to prover:
+* Inject `.env.base` changes to prover:
 ```bash
-source <(just env testnet)
+source .env.base
 ```
 * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
-### Base Network:
-`.env.broker` is a custom environment file with more options to configure.
-Create `.env.broker`:
+### Optional: `.env.broker` with custom enviroment
+`.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
+
+* Create `.env.broker`:
 ```bash
 cp .env.broker-template .env.broker
 ```
 
-Configure `.env.broker` file:
+* Configure `.env.broker` file:
 ```bash
 nano .env.broker
 ```
@@ -253,19 +276,26 @@ Add the following variables to the `.env.broker`.
 * `RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
   * RPC has to be between `""`
 * `PRIVATE_KEY=`: Add your EVM wallet private key
-* Find the value of following variables [here](https://github.com/boundless-xyz/boundless/blob/main/contracts/deployment.toml):
+* Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
   * `BOUNDLESS_MARKET_ADDRESS=`
   * `SET_VERIFIER_ADDRESS=`
   * `VERIFIER_ADDRESS=` (add it to .env manually)
+  * `ORDER_STREAM_URL=`
  
-Inject `.env.broker` changes to prover:
+* Inject `.env.broker` changes to prover:
 ```
-source <(just env broker)
+source .env.broker
 ```
+  * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
 ---
 
 ## Deposit Stake
+During this phase `USDC` will be used as the staking token across all networks. HP tokens are now deprecated. Provers will need to deposit` USDC` to the Boundless Market contract to use as stake when locking orders.
+
+Note that `USDC` has a different address on each network. Refer to the [Deployments page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) for the addresses. USDC can be obtained on testnets from the [Circle Faucet](https://faucet.circle.com/).
+
+**Add `boundless` CLI to bash:**
 ```
 source ~/.bashrc
 ```
