@@ -45,7 +45,7 @@ Here is the step by step guide to Install and run your Prover smoothly, but plea
 ## Dependecies
 ### Install & Update Packages
 ```bash
-apt update && sudo apt upgrade -y
+apt update && apt upgrade -y
 apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build -y
 ```
 
@@ -352,7 +352,7 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 ### Benchmarking Bento
 Install psql:
 ```bash
-sudo apt update
+apt update
 apt install postgresql postgresql-client
 psql --version
 ```
@@ -479,8 +479,8 @@ LimitNOFILE=65535
 ```
 
 ```
-sudo systemctl daemon-reload
-sudo systemctl restart docker
+systemctl daemon-reload
+systemctl restart docker
 ```
 
 * Now restart terminal and rerun your **inject network** command, then run `just broker`
