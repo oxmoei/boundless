@@ -50,7 +50,9 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 # Setup
 Here is the step by step guide to Install and run your Prover smoothly, but please pay attention to these notes:
 * Read every single word of this guide, if you really want to know what you are doing.
-* There is an #Optimize Prover section where you need to ready after Setup.
+* There is an [Prover+Broker Optimization](https://github.com/0xmoei/boundless/blob/main/README.md#bento-prover--broker-optimizations) section where you need to read after setting up prover.
+
+
 
 ## Dependecies
 ### Install & Update Packages
