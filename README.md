@@ -331,6 +331,10 @@ docker compose logs -f broker
 docker compose logs -fn 100
 ```
 
+![image](https://github.com/user-attachments/assets/c7e8e343-ec4c-4202-b4ba-ef1cf04cedaa)
+
+* You may stuck at `Subscribed to offchain Order stream`, but it starts detecting orders soon.
+
 ---
 
 # Bento (Prover) & Broker Optimizations
