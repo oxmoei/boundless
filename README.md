@@ -220,13 +220,13 @@ RUST_LOG=info bento_cli -c 32
 ---
 
 ## Configure Network
-### Sepolia:
+### Base:
 Configure `.env.testnet` file:
 ```bash
 nano .env.testnet
 ```
 Add the following variables to the `.env.testnet`.
-* `RPC_URL=""`: To get Ethereum Sepolia rpc url, Use third-parties .e.g Alchemy or run your own Base mainnet node
+* `RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps), [Quicknode](https://quicknode.com/signup?via=moei) or paid [Ankr](https://www.ankr.com/rpc/?utm_referral=LqL9Sv86Te). haven't tested third-party platforms myself yet, they might have some issue, so we might need to run our own node. I'll update this section soon.
 * RPC has to be between `""`
 * `PRIVATE_KEY=`: Add your EVM wallet private key
 
