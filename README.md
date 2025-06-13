@@ -13,6 +13,13 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
 ---
 
+## Notes
+- The prover is in beta phase, and you may get to dozens of errors same as me, so you can wait until official incentivized testnet with more stable network and more perfect guide from me, or start exprimenting now.
+- I advice to start with testnet networks due to loss of stake funds
+
+---
+
+
 ## Requirements
 ### Hardware
 * CPU - 16 threads, reasonable single core boost performance (>3Ghz)
