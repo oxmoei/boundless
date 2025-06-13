@@ -234,9 +234,6 @@ RUST_LOG=info bento_cli -c 32
 ## Configure Network
 Boundless is available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`, marking the first time real funds will be used in Boundless.
 
-
-Provers should ensure they configure their Proving Nodes to reduce the risk of accepting unprofitable requests or being slashed due to overcommitting proving resources. This typically involves configuring `mcycle_price`, `mcycle_price_stake_token`, `peak_prove_khz`, `max_concurrent_proofs` and other configuration values according to your pricing preferences and cluster size. Refer to broker-
-
 ### Set Networks
 There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
 
@@ -248,9 +245,11 @@ In this step I modify `.env.base`, you can replace any of above with it.
 nano .env.base
 ```
 Add the following variables to the `.env.base`.
-* `RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps), [Quicknode](https://quicknode.com/signup?via=moei) or paid [Ankr](https://www.ankr.com/rpc/?utm_referral=LqL9Sv86Te). haven't tested third-party platforms myself yet, they might have some issue, so we might need to run our own node. I'll update this section soon.
-* RPC has to be between `""`
-* `PRIVATE_KEY=`: Add your EVM wallet private key
+* `export RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps), [Quicknode](https://quicknode.com/signup?via=moei) or paid [Ankr](https://www.ankr.com/rpc/?utm_referral=LqL9Sv86Te).
+  * Note: you must use an RPC URL that supports event filters. Many free RPC providers do not support them.
+  * We might need to run our own node. I'll update this section soon.
+  * RPC has to be between `""`
+* `export PRIVATE_KEY=`: Add your EVM wallet private key
 
 ![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
 
@@ -273,14 +272,14 @@ cp .env.broker-template .env.broker
 nano .env.broker
 ```
 Add the following variables to the `.env.broker`.
-* `RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
+* `export RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
   * RPC has to be between `""`
-* `PRIVATE_KEY=`: Add your EVM wallet private key
+* `export PRIVATE_KEY=`: Add your EVM wallet private key
 * Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
-  * `BOUNDLESS_MARKET_ADDRESS=`
-  * `SET_VERIFIER_ADDRESS=`
-  * `VERIFIER_ADDRESS=` (add it to .env manually)
-  * `ORDER_STREAM_URL=`
+  * `export BOUNDLESS_MARKET_ADDRESS=`
+  * `export SET_VERIFIER_ADDRESS=`
+  * `export VERIFIER_ADDRESS=` (add it to .env manually)
+  * `export ORDER_STREAM_URL=`
  
 * Inject `.env.broker` changes to prover:
 ```
@@ -291,6 +290,8 @@ source .env.broker
 ---
 
 ## Deposit Stake
+Provers should ensure they configure their Proving Nodes to reduce the risk of accepting unprofitable requests or being slashed of their `USDC` stakes due to overcommitting proving resources. This typically involves configuring `mcycle_price`, `mcycle_price_stake_token`, `peak_prove_khz`, `max_concurrent_proofs` and other configuration values according to your pricing preferences and cluster size. Refer to `broker.toml`
+
 During this phase `USDC` will be used as the staking token across all networks. HP tokens are now deprecated. Provers will need to deposit` USDC` to the Boundless Market contract to use as stake when locking orders.
 
 Note that `USDC` has a different address on each network. Refer to the [Deployments page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) for the addresses. USDC can be obtained on testnets from the [Circle Faucet](https://faucet.circle.com/).
@@ -299,12 +300,6 @@ Note that `USDC` has a different address on each network. Refer to the [Deployme
 ```
 source ~/.bashrc
 ```
-
-**Deposit ETH:**
-```
-boundless account deposit ETH_AMOUNT
-```
-* Deposit Balance: `boundless account balance`
 
 **Deposit Stake:**
 ```
@@ -389,6 +384,12 @@ Once your broker is running, before the gpu-based prover gets into work, broker 
 * The less you set `mcycle_price`, the higher chance you outpace other provers.
 
 ![image](https://github.com/user-attachments/assets/fab9cc79-362f-4a43-a461-258ffe0bfc1a)
+
+
+* To get idea of what `mcycle_price` are other provers using, find an order in [explorer](https://explorer.beboundless.xyz/orders/0xc2db89b2bd434ceac6c74fbc0b2ad3a280e66db024d22ad3) with your prefered network, go to details page of the order and look for `ETH per Megacycle`
+
+![image](https://github.com/user-attachments/assets/6dd0c012-bff7-4a98-97ae-3cdfb288bc43)
+
 
 2. Increasing `lockin_priority_gas` to consume more gas to outrun other bidders. You might need to first remove `#` to uncomment it's line, then set the gas. It's based on Gwei.
 
