@@ -43,7 +43,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * You have to rent a `Ubuntu VM` template (and NOT `CUDA` or `Pytorch`) GPU
 * As my research, [Vast.ai](https://cloud.vast.ai/?ref_id=228875) was the only cheap GPU provider supporting [Ubuntu VM](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM) templates with crypto payments.
 * Prover installation is using `Docker`, so `CUDA` or `Pytorch` templates for cloud GPUs is not possible because they also run your GPU instance in a Docker and you can't run Prover Docker inside your GPU instance Docker.
-* I will update this guide later to make you able to run it on other cloud GPU providers like Hyperbolic, Quickpod, etc.
+* **I will update this guide later to make you able to run it on other cloud GPU providers like Hyperbolic, Quickpod, etc.**
 
 ---
 # Setup
