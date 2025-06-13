@@ -250,7 +250,7 @@ In this step I modify `.env.base`, you can replace any of above with it.
 nano .env.base
 ```
 Add the following variables to the `.env.base`.
-* `export RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps), [Quicknode](https://quicknode.com/signup?via=moei) or paid [Ankr](https://www.ankr.com/rpc/?utm_referral=LqL9Sv86Te).
+* `export RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps) or [Quicknode](https://quicknode.com/signup?via=moei)
   * Note: you must use an RPC URL that supports event filters. Many free RPC providers do not support them.
   * We might need to run our own node. I'll update this section soon.
   * RPC has to be between `""`
