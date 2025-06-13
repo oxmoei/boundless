@@ -30,6 +30,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
   * Minimum: one 8GB vRAM GPU
   * Recommended to be competetive: 10x GPU with min 8GB vRAM
   * Recomended GPU models are 4090, 5090 and L4.
+> I've tested the new release with only a 80GB vRAM GPU, I'll update here when I just tested out lower GPUs.
 
 ### Software
 * Supported: Ubuntu 20.04/22.04
