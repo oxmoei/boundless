@@ -243,7 +243,8 @@ Boundless is available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`,
 There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
 
 ### Base Mainnet
-In this step I modify `.env.base`, you can replace any of above with it.
+* In this step I modify `.env.base`, you can replace any of above with it.
+* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia`
 
 * Configure `.env.base` file:
 ```bash
