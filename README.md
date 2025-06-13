@@ -16,6 +16,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 ## Notes
 - The prover is in beta phase, and you may get to dozens of errors same as me, so you can wait until official incentivized testnet with more stable network and more perfect guide from me, or start exprimenting now.
 - I advice to start with testnet networks due to loss of stake funds
+- I will update this github guide constantly, so you always have to check back here later and follow me on [X](https://x.com/0xMoei) for new updates.
 
 ---
 
@@ -255,20 +256,22 @@ There are three `.env` files with the official configurations of each network (`
   * You can search for `eth_newBlockFilter` in the documents of third-party RPC providers to see if they support it or not.
 
 RPC providers I know they support `eth_newBlockFilter` and I recommend:
-* [BlockPi](https://dashboard.blockpi.io/)
+* [BlockPi](https://dashboard.blockpi.io/):
   * Support free Base Mainnet, Base Sepolia. ETH sepolia costly as $49
-* [Alchemy](https://dashboard.alchemy.com/apps)
+* [Alchemy](https://dashboard.alchemy.com/apps):
   * Team recommends but I couldn't pass Cloudflare puzzle yet. f*ck me. Try it yourself.
 * [Chainstack](https://console.chainstack.com/):
   * You have to change the value of `lookback_blocks` from `300` to `0`, because chainstack's free plan doesn't support `eth_getlogs`, so you won't be able to check last 300 blocks for open orders at startup (which is not very important i believe)
   * Check **Broker Optimization** section to know how to change `lookback_blocks` value in `broker.toml`
-
-
+* Run your own RPC node:
+  * This is actually the best way but costly in terms of needing ~550-650 GB Disk
+  * [Guide for ETH Sepolia](https://github.com/0xmoei/geth-prysm-node/blob/main/README.md)
+* Quicknode supports `eth_newBlockFilter` but was NOT compatible with prover somehow idk. It blew up my prover.
 
 
 ### Base Mainnet
-* In this step I modify `.env.base`, you can replace any of above with it.
-* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia`
+* In this step I modify `.env.base`, you can replace it with any of above (Sepolia networks).
+* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia` or ETH Sepolia by modifying `.env.eth-sepolia`
 
 * Configure `.env.base` file:
 ```bash
@@ -283,7 +286,7 @@ Add the following variables to the `.env.base`.
 
 ![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
 
-* Inject `.env.base` changes to prover:
+* Inject `.env.base` to prover:
 ```bash
 source .env.base
 ```
@@ -291,6 +294,7 @@ source .env.base
 
 ### Optional: `.env.broker` with custom enviroment
 `.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
+* I recommend to bypass using it, since you may want to switch between network sometimes. It's easier to swap among those above preserved .env files.
 
 * Create `.env.broker`:
 ```bash
@@ -377,6 +381,7 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 * Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
 * Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
 * If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to **Configure Network** step to use `.env.broker` as your network configuration.
+* You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc.
 
 ### Benchmarking Bento
 Install psql:
@@ -461,7 +466,13 @@ Read the more about them in [official doc](https://docs.beboundless.xyz/provers/
   * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
   * It's set as `2` by default, and really depends on your GPU and your configuration, you have to test it out if you want to inscrease it.
 
-
+* `min_deadline`: Min seconds left before the deadline of the order to consider bidding on a request or not.
+  * Requesters set a deadline for their order, if a prover can't prove during this, it gets slashed.
+  * By setting the min deadline, your prover won't accept requests with a deadline less than that.
+  * As in the following image of an order in [explorer](https://explorer.beboundless.xyz/), the order fullfilled after the deadline and prover got slashed because of the delay in delivering
+ 
+ ![image](https://github.com/user-attachments/assets/bc497b61-01fe-451a-aeb1-de35efca56af)
+ 
 ---
 
 # Safe Update or Stop Prover
@@ -518,3 +529,8 @@ systemctl restart docker
 ```
 
 * Now restart terminal and rerun your **inject network** command, then run `just broker`
+
+
+## Getting tens of `Locked` orders on prover's [explorer](https://explorer.beboundless.xyz/)
+* It's due to RPC issues, check your logs.
+* You can increase `txn_timeout = 45` in `broker.toml` file to increase the seconds of transactions confirmations.
