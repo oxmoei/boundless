@@ -34,7 +34,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
 ### Software
 * Supported: Ubuntu 20.04/22.04
-* Experimental: Ubuntu 24.04
+* No support: Ubuntu 24.04
 * If you are running on Windows os locally, install Ubuntu 22 WSL using this [Guide](https://github.com/0xmoei/Install-Linux-on-Windows)
 
 ---
