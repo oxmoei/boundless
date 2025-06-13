@@ -119,7 +119,7 @@ export PATH=$PATH:/root/.cargo/bin
 source ~/.bashrc
 
 # Verify boundless-cli:
-boundless-cli -h
+boundless -h
 ```
 
 ---
@@ -272,15 +272,15 @@ source ~/.bashrc
 
 **Deposit ETH:**
 ```
-boundless-cli account deposit ETH_AMOUNT
+boundless account deposit ETH_AMOUNT
 ```
-* Deposit Balance: `boundless-cli account balance`
+* Deposit Balance: `boundless account balance`
 
 **Deposit Stake:**
 ```
-boundless-cli account deposit-stake STAKE_AMOUNT
+boundless account deposit-stake STAKE_AMOUNT
 ```
-* Deposit Stake Balance: `boundless-cli account stake-balance`
+* Deposit Stake Balance: `boundless account stake-balance`
 
 ---
 
