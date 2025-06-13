@@ -432,6 +432,11 @@ Read the more about them in [official doc](https://docs.beboundless.xyz/provers/
 * `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
   * You can set the `peak_prove_khz` by following the previous step (Benchmarking Bento)
 
+* `max_concurrent_proofs`: Maximum number of orders and proving jobs the system can handle simultaneously. Increasing it, increase the performance but actually your system should be able to handle it.
+  * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
+  * It's set as `2` by default, and really depends on your GPU and system, you have to test it out if you want to inscrease it
+
+
 ---
 
 # Safe Update or Stop Prover
