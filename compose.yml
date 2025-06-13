@@ -226,7 +226,10 @@ services:
       POSTGRES_USER:
       POSTGRES_PASS:
     entrypoint: /app/broker --db-url 'sqlite:///db/broker.db' --set-verifier-address ${SET_VERIFIER_ADDRESS} --boundless-market-address ${BOUNDLESS_MARKET_ADDRESS} --config-file /app/broker.toml --bento-api-url http://localhost:8081
-
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
 volumes:
   redis-data:
   postgres-data:
