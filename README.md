@@ -454,5 +454,33 @@ git checkout <new_version_tag>
 just broker
 ```
 
+---
 
+# Debugging
+## Error: Too many open files (os error 24)
+During the build process of `just broker`, you might endup to `Too many open files (os error 24)` error.
 
+### Fix:
+```
+nano /etc/security/limits.conf
+```
+* Add:
+```
+* soft nofile 65535
+* hard nofile 65535
+```
+
+```
+nano /lib/systemd/system/docker.service
+```
+* Add or modify the following under `[Service]` section.
+```
+LimitNOFILE=65535
+```
+
+```
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+* Now restart terminal and rerun your **inject network** command, then run `just broker`
