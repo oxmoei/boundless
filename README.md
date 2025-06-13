@@ -226,7 +226,7 @@ Configure `.env.testnet` file:
 nano .env.testnet
 ```
 Add the following variables to the `.env.testnet`.
-* `RPC_URL=""`: To get Ethereum Sepolia rpc url, Use third-parties .e.g Alchemy or run your own [Geth Node](https://github.com/0xmoei/geth-prysm-node/)
+* `RPC_URL=""`: To get Ethereum Sepolia rpc url, Use third-parties .e.g Alchemy or run your own Base mainnet node
 * RPC has to be between `""`
 * `PRIVATE_KEY=`: Add your EVM wallet private key
 
