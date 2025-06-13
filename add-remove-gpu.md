@@ -1,5 +1,9 @@
 # Step-by-Step Guide to Modify the Number of GPUs
-The provided [compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) file is configured to use 4 GPUs, each assigned to a `gpu_prove_agent` service (`gpu_prove_agent0` to `gpu_prove_agent3`). To adjust the number of GPUs—either by adding or removing them. You need to modify the `gpu_prove_agent` service definitions and update the `depends_on` list in the `broker` service. This guide outlines the specific parts of the file to change.
+The provided [compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) file is configured to use 4 GPUs, each assigned to a `gpu_prove_agent` service (`gpu_prove_agent0` to `gpu_prove_agent3`).
+
+To adjust the number of GPUs—either by adding or removing them. You need to modify the `gpu_prove_agent` service definitions and update the `depends_on` list in the `broker` service.
+
+This guide outlines the specific parts of the file to change.
 
 ## Identify the Target Number of GPUs
 * Decide how many GPUs you want to use (e.g., 3 instead of 4, or 5 instead of 4).
