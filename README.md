@@ -30,7 +30,8 @@ First, you need to know how **Boundless Prover market** actually works to realiz
   * Minimum: one 8GB vRAM GPU
   * Recommended to be competetive: 10x GPU with min 8GB vRAM
   * Recomended GPU models are 4090, 5090 and L4.
-> I've tested the new release with only a 80GB vRAM GPU, I'll update here when I just tested out lower GPUs.
+> * I've tested the new release with only a 80GB vRAM GPU, I'll update here when I just tested out lower GPUs.
+> * You better test it out with single GPUs by lowering your configurations later by reading the further sections.
 
 ### Software
 * Supported: Ubuntu 20.04/22.04
@@ -176,23 +177,41 @@ nvtop
 
 ## Configure Prover
 ### Single GPU:
-The `compose.yml` file defines all services within Prover.
+The default `compose.yml` file defines all services within Prover.
 * Default `compose.yml` only supporting single-GPU and default CPU, RAM utilization.
 * Edit `compose.yml` by this command:
   ```bash
   nano compose.yml
   ```
-* The current `compose.yml` is set for `1` GPU by default.
+* The current `compose.yml` is set for `1` GPU by default, you can bypass editing it if you only have one GPU.
+* In single GPUs, you can increase the RAM & CPU of the `x-exec-agent-common` and `gpu_prove_agent0` services in `compose.yml` instead to maximize the utilization of your system
 
 ### Multiple GPUs
 * 4 GPUs:
-To add more GPUs or modify CPU and RAM sepcified to each GPU (default numbs are fine), replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
+To add more GPUs or modify CPU and RAM sepcified to each GPU, replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
 
-* More/Less than 4 GPUs
- Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/blob/main/add-remove-gpu.md) to add or remove the number of 4 GPUs in my custom compose.yml file
+* More/Less than 4 GPUs:
+Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/blob/main/add-remove-gpu.md) to add or remove the number of 4 GPUs in my custom `compose.yml` file
 
-### Modify CPU/RAM of each GPU
-* You see that on `gpu_prove_agent0`, GPU 0 is listed with the device ID of `0`, memory limited to `4G`, and CPU set as `4` cores for each GPU instance:
+### Modify CPU/RAM of x-exec-agent-common
+* `x-exec-agent-common` service in your `compose.yml` is doing the preflight process of orders to estimate if prover can bid on them or not.
+* Optimizing it can be very helpful in compitition with other provers
+* You see smth like below code as your `x-exec-agent-common` service in your `compose.yml` where you can increase it's memory and cpu cores:
+```yml
+x-exec-agent-common: &exec-agent-common
+  <<: *agent-common
+  mem_limit: 4G
+  cpus: 3
+  environment:
+    <<: *base-environment
+    RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
+  entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
+```
+
+### Modify CPU/RAM of gpu_prove_agent
+* `gpu_prove_agent` service in your `compose.yml` has the job to prove the orders after they got locked by utilizing your GPUs.
+* The default number of its CPU and RAM is fine but if you have good system spec, you can increase them for each GPU.
+* You see smth like below code as your `gpu_prove_agentX` service in your `compose.yml` where you can increase the memory and cpu cores of each gpu agent.
    ```yml
      gpu_prove_agent0:
        <<: *agent-common
@@ -210,13 +229,15 @@ To add more GPUs or modify CPU and RAM sepcified to each GPU (default numbs are 
    ```
 * While the default CPU/RAM for each GPU is enough, for single GPUs, you can increase them to increase efiiciency, but don't maximize and always keep some CPU/RAML for other jobs.
 
-**Note**: `SEGMENT_SIZE` of the prover is set to `21` by default for each GPU, which is compatible only with `>20GB vRAM` GPUs, if you have less vRAM, you have to modify it, you can read the Segment Size section of the guide.
+---
+
+**Note**: `SEGMENT_SIZE` of the prover is set to `21` by default in `x-exec-agent-common` service which applies on all GPUs, and `21` is compatible only with `>20GB vRAM` GPUs, if you have less vRAM, you have to modify it, you can read the [Segment Size](https://github.com/0xmoei/boundless/tree/main#segment-size-prover) section of the guide to modify it.
 
 ---
 
 ## Running Prover
 Boundless is comprised of two major components:
-* `Bento` is the local proving infrastructure. Bento will take requests, prove them and return the result.
+* `Bento` is the local proving infrastructure. Bento will take the locked orders from `Broker`, prove them and return the result to `Broker`.
 * `Broker` interacts with the Boundless market. `Broker` can submit or request proves from the market.
 
 ---
@@ -242,7 +263,7 @@ RUST_LOG=info bento_cli -c 32
 ![image](https://github.com/user-attachments/assets/a67fdfb0-3d22-4a4a-b47a-247567df0d45)
 
 * To check if all your GPUs are utilizing:
-  *  Increase `32` to `2048`/`4096`
+  *  Increase `32` to `1024`/`2048`/`4096`
   *  Open new terminal with `nvtop` command
   *  Run the test proof and monitor your GPUs utilization.
 
@@ -262,7 +283,7 @@ RPC providers I know they support `eth_newBlockFilter` and I recommend:
 * [BlockPi](https://dashboard.blockpi.io/):
   * Support free Base Mainnet, Base Sepolia. ETH sepolia costly as $49
 * [Alchemy](https://dashboard.alchemy.com/apps):
-  * Team recommends but I couldn't pass Cloudflare puzzle yet. f*ck me. Try it yourself.
+  * Team recommends but I couldn't pass Cloudflare puzzle yet. Try it out yourself.
 * [Chainstack](https://console.chainstack.com/):
   * You have to change the value of `lookback_blocks` from `300` to `0`, because chainstack's free plan doesn't support `eth_getlogs`, so you won't be able to check last 300 blocks for open orders at startup (which is not very important i believe)
   * Check **Broker Optimization** section to know how to change `lookback_blocks` value in `broker.toml`
@@ -281,9 +302,7 @@ RPC providers I know they support `eth_newBlockFilter` and I recommend:
 nano .env.base
 ```
 Add the following variables to the `.env.base`.
-* `export RPC_URL=""`: To get Base Mainnet rpc url, Use third-parties .e.g free [Alchemy](https://dashboard.alchemy.com/apps) or [Quicknode](https://quicknode.com/signup?via=moei)
-  * Note: you must use an RPC URL that supports event filters. Many free RPC providers do not support them.
-  * We might need to run our own node. I'll update this section soon.
+* `export RPC_URL=""`:
   * RPC has to be between `""`
 * `export PRIVATE_KEY=`: Add your EVM wallet private key
 
@@ -293,7 +312,7 @@ Add the following variables to the `.env.base`.
 ```bash
 source .env.base
 ```
-* After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
+* After each terminal close or before any prover startup, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
 ### Optional: `.env.broker` with custom enviroment
 `.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
@@ -380,11 +399,11 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 ![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
 
 ### Setting SEGMENT_SIZE
-* `SEGMENT_SIZE` in `compose.yml` under the `exec_agent` service is `21`by default.
+* `SEGMENT_SIZE` in `compose.yml` under the `x-exec-agent-common` service is `21`by default.
 * Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
 * Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
-* If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to **Configure Network** step to use `.env.broker` as your network configuration.
-* You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc.
+* You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc if you are using them.
+* If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to [network configuration](https://github.com/0xmoei/boundless/tree/main#configure-network) section to use `.env.broker` as your network configurationn.
 
 ### Benchmarking Bento
 Install psql:
@@ -394,7 +413,7 @@ apt install postgresql postgresql-client
 psql --version
 ```
 
-1. Benchmark by simulating an order id: (make sure Bento is running):
+1. Recommended: Benchmark by simulating an order id: (make sure Bento is running):
 ```bash
 boundless proving benchmark --request-ids <IDS>
 ```
@@ -422,7 +441,7 @@ bash scripts/job_status.sh JOB_ID
 ```
 * replace `JOB_ID` with the one prompted to you when running a test.
 * Now you get the `hz` which has to be devided by 1000x to be in `khz` and the `cycles` it proved.
-* If got error `not_found`, it's cuz you didn't create `.env.broker` and the script is using `.env.broker` to query your `Segment_Size`, do `cp .env.broker-template .env.broker` to fix.
+* If got error `not_found`, it's cuz you didn't create `.env.broker` and the script is using the `SEGMENT_SIZE` value in `.env.broker` to query your Segment size, do `cp .env.broker-template .env.broker` to fix.
 
 ---
 
@@ -461,9 +480,9 @@ Once your broker is running, before the gpu-based prover gets into work, broker 
 2. Increasing `lockin_priority_gas` to consume more gas to outrun other bidders. You might need to first remove `#` to uncomment it's line, then set the gas. It's based on Gwei.
 
 ### Other settings in `broker.toml`
-Read the more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
+Read more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
 * `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
-  * You can set the `peak_prove_khz` by following the previous step (Benchmarking Bento)
+  * You can set the `peak_prove_khz` by following the previous step [(Benchmarking Bento)](https://github.com/0xmoei/boundless/tree/main#benchmarking-bento)
 
 * `max_concurrent_proofs`: Maximum number of orders the can lock. Increasing it, increase the ability to lock more orders, but if you prover cannot prove them in the specified deadline, your stake assets will get slashed.
   * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
@@ -482,8 +501,11 @@ Read the more about them in [official doc](https://docs.beboundless.xyz/provers/
 ### 1. Check locked orders
 Ensure either through the `broker` logs or [through indexer page of your prover](https://explorer.beboundless.xyz/provers/) that your broker does not have any incomplete locked orders before stopping or update, othervise you might get slashed for your staked assets.
 
+* Optionally to not accept more order requests by your prover temporarily, you can set `max_concurrent_proofs` to `0`, wait for `locked` orders to be `fulfilled`, then go through the next step to stop the node.
+
 ### 2. Stop the broker and optionally clean the database
 ```bash
+# Optional, no need if you don't want to upgrade the node's repository
 just broker clean
  
 # Or stop the broker without cleaning volumes
