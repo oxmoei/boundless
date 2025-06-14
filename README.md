@@ -68,6 +68,8 @@ Here is the step by step guide to Install and run your Prover smoothly, but plea
 ```bash
 apt update && apt upgrade -y
 apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build -y
+
+apt --fix-broken install
 ```
 
 ### Clone Boundless Repo
