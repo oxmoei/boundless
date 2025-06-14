@@ -41,13 +41,21 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 ---
 
 ## Rent GPU
-* Beginners in renting GPU can use this [guide](https://github.com/0xmoei/Rent-and-Config-GPU)
-* You have to rent a `Ubuntu VM` template (and NOT `CUDA` or `Pytorch`) GPU
-* As my research, [Vast.ai](https://cloud.vast.ai/?ref_id=228875) was the only cheap GPU provider supporting [Ubuntu VM](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM) templates with crypto payments.
-* Prover installation is using `Docker`, so `CUDA` or `Pytorch` templates for cloud GPUs is not possible because they also run your GPU instance in a Docker and you can't run Prover Docker inside your GPU instance Docker.
-* **I will update this guide later to make you able to run it on other cloud GPU providers like Hyperbolic, Quickpod, etc.**
+* **Beginner Guide**
+  * For those new to renting GPUs, refer to this guide for step-by-step instructions.
 
+* **Choosing the Right GPU Template**
+  * Rent an `Ubuntu VM` template for your GPU instance.
+  * Avoid `CUDA` or `Pytorch` templates, as they are incompatible with the Prover installation.
+
+* **Why Ubuntu VM is Required**
+  * Prover installation uses `Docker`. Since `CUDA` or `Pytorch` templates run your GPU instance inside a Docker container, you cannot run the Prover Docker inside another Docker instance.
+
+* **Recommended GPU Providers**
+  * Vast.ai: The only affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options. Visit [Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)
+  
 ---
+
 # Setup
 Here is the step by step guide to Install and run your Prover smoothly, but please pay attention to these notes:
 * Read every single word of this guide, if you really want to know what you are doing.
