@@ -14,7 +14,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 ---
 
 ## Notes
-- The prover is in beta phase, and you may get to dozens of errors same as me, so you can wait until official incentivized testnet with more stable network and more perfect guide from me, or start exprimenting now.
+- The prover is in beta phase, while I admit that my guide is really perfect, you may get some troubles in the process of running it, so you can wait until official incentivized testnet with more stable network and more perfect guide from me, or start exprimenting now.
 - I advice to start with testnet networks due to loss of stake funds
 - I will update this github guide constantly, so you always have to check back here later and follow me on [X](https://x.com/0xMoei) for new updates.
 
