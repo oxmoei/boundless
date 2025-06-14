@@ -42,7 +42,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
 ## Rent GPU
 * **Beginner Guide**
-  * For those new to renting GPUs, refer to this guide for step-by-step instructions.
+  * For those new to renting GPUs, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU) for step-by-step instructions.
 
 * **Choosing the Right GPU Template**
   * Rent an `Ubuntu VM` template for your GPU instance.
