@@ -203,7 +203,8 @@ Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/bl
 
 ### Modify CPU/RAM of x-exec-agent-common
 * `x-exec-agent-common` service in your `compose.yml` is doing the preflight process of orders to estimate if prover can bid on them or not.
-* Optimizing it can be very helpful in compitition with other provers
+* More exec agents will be able to preflight and prove more orders concurrently.
+* Increasing is from default value: `2` depends on how many concurrent proofs you want to allow.
 * You see smth like below code as your `x-exec-agent-common` service in your `compose.yml` where you can increase it's memory and cpu cores:
 ```yml
 x-exec-agent-common: &exec-agent-common
@@ -217,7 +218,8 @@ x-exec-agent-common: &exec-agent-common
 ```
 
 ### Modify CPU/RAM of gpu_prove_agent
-* `gpu_prove_agent` service in your `compose.yml` has the job to prove the orders after they got locked by utilizing your GPUs.
+* `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
+* In single GPUs, you can increase performance by increasing CPU/RAM of GPU agents.
 * The default number of its CPU and RAM is fine but if you have good system spec, you can increase them for each GPU.
 * You see smth like below code as your `gpu_prove_agentX` service in your `compose.yml` where you can increase the memory and cpu cores of each gpu agent.
    ```yml
