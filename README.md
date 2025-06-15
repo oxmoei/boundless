@@ -356,9 +356,7 @@ source .env.broker
 ---
 
 ## Deposit Stake
-Provers should ensure they configure their Proving Nodes to reduce the risk of accepting unprofitable requests or being slashed of their `USDC` stakes due to overcommitting proving resources. This typically involves configuring `mcycle_price`, `mcycle_price_stake_token`, `peak_prove_khz`, `max_concurrent_proofs` and other configuration values according to your pricing preferences and cluster size. Refer to `broker.toml`
-
-During this phase `USDC` will be used as the staking token across all networks. HP tokens are now deprecated. Provers will need to deposit` USDC` to the Boundless Market contract to use as stake when locking orders.
+Provers will need to deposit` USDC` to the Boundless Market contract to use as stake when locking orders.
 
 Note that `USDC` has a different address on each network. Refer to the [Deployments page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) for the addresses. USDC can be obtained on testnets from the [Circle Faucet](https://faucet.circle.com/).
 
