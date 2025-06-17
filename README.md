@@ -84,6 +84,13 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 For an automated installation and prover management, you can use this script that handles all dependencies, configuration, setup, and prover management automatically.
 
 ## Download and Run the Installer
+```bash
+# Update packages
+apt update && apt upgrade -y
+
+# download wget
+apt install wget
+```
 
 ```bash
 # Download the installation script
