@@ -69,35 +69,19 @@ First, you need to know how **Boundless Prover market** actually works to realiz
   * Rent an `Ubuntu VM` template for your GPU instance.
   * Avoid `CUDA` or `Pytorch` templates, as they are incompatible with the Prover installation.
 
+* **Recommended GPU Providers**
+  * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
+ 
 * **Why Ubuntu VM is Required**
   * Prover installation uses `Docker`. Since `CUDA` or `Pytorch` templates run your GPU instance inside a Docker container, you cannot run the Prover Docker inside another Docker instance.
 
-* **Recommended GPU Providers**
-  * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
-
 * **Beginner Guide**
-  * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU).
+  * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU), then proceed with renting a Vast GPU using this [link](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM).
 
 ---
 
 # Automated Setup
-For a streamlined installation experience, you can use the automated installation script that handles all dependencies, configuration, and setup automatically.
-
-## Rent GPU
-* **Choosing the Right GPU Template**
-  * Rent an `Ubuntu VM` template for your GPU instance.
-  * Avoid `CUDA` or `Pytorch` templates, as they are incompatible with the Prover installation.
-
-* **Why Ubuntu VM is Required**
-  * Prover installation uses `Docker`. Since `CUDA` or `Pytorch` templates run your GPU instance inside a Docker container, you cannot run the Prover Docker inside another Docker instance.
-
-* **Recommended GPU Providers**
-  * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
-
- * **Beginner Guide**
-  * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU).
-
----
+For an automated installation and prover management, you can use this script that handles all dependencies, configuration, setup, and prover management automatically.
 
 ## Download and Run the Installer
 
