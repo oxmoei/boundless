@@ -1,15 +1,40 @@
 # Boundless Prover Guide
+The Boundless Prover Node is a computational proving system that participates in the Boundless decentralized proving market. Provers stake USDC, bid on computational tasks, generate zero-knowledge proofs using GPU acceleration, and earn rewards for successful proof generation.
+
+This guide covers both **automated** and **manual** installation methods for Ubuntu 20.04/22.04 systems.
+
+## Table of Contents
+- [Boundless Prover Market](#boundless-prover-market)
+- [Notes](#notes)
+- [Requirements](#requirements)
+- [Rent GPU](#rent-gpu)
+- [Automated Setup](#automated-setup)
+- [Manual Setup](#manual-setup)
+  - [Dependencies](#dependencies)
+  - [System Hardware Check](#system-hardware-check)
+  - [Configure Prover](#configure-prover)
+  - [Running Prover](#running-prover)
+  - [Run Bento](#run-bento)
+  - [Configure Network](#configure-network)
+  - [Deposit Stake](#deposit-stake)
+  - [Run Broker](#run-broker)
+- [Bento (Prover) & Broker Optimizations](#bento-prover--broker-optimizations)
+  - [Segment Size (Prover)](#segment-size-prover)
+  - [Broker Optimization](#broker-optimization)
+- [Safe Update or Stop Prover](#safe-update-or-stop-prover)
+- [Debugging](#debugging)
+
+---
 
 ## Boundless Prover market
 First, you need to know how **Boundless Prover market** actually works to realize what you are doing.
-* **Requester Submits Ask**: A requester (e.g. developer) creates a task or a computation request as an `order` on Boundless, offering funds in ETH or ERC-20 to incentivize participation.
-* **Prover Stakes USDC**: The Boundless market requires funds (USDC) deposited as stake before a prover can `bid` on requests.
-* **Prover Places Bid**: A prover detects an `order`, submits a `bid`, stating their offered price or resources, which may be lower than the request’s locked funds or other provers’ `bid`s.
-* **Prover Locks Order**: If their `bid` is accepted among other provers (e.g., lower `bid`, sufficient stake, or meeting specific criteria), the prover locks the order committing to prove it within a set deadline (`lock-timeout`) using previously staked `USDC`, so other provers can't touch it until it perform computational power.
-* **Prover Generates Proof**: The prover completes the task and submits the `proof` to the network.
-* **Slashing**: If the `proof` is invalid, incomplete, or the prover fails to deliver (e.g., due to low computational power, malicious behavior or timeout), the slashing mechanism activates, penalizing the prover by forfeiting a part of their staked `USDC` funds.
-* **Order Fulfillment**: If the `proof` is valid, the prover receives the locked funds as a reward, and the requester receives the verified result, completing the process.
-* `bid ` are actually `mcycle_price` (the price of each 1 million cycles the prover proves). I'll tell you more about this later in the guide.
+
+1. **Request Submission**: Developers submit computational tasks as "orders" on Boundless, offering ETH/ERC-20 rewards
+2. **Prover Stakes USDC**: Provers must deposit `USDC` as stake before bidding on orders
+3. **Bidding Process**: Provers detect orders and submit competitive bids (`mcycle_price`)
+4. **Order Locking**: Winning provers lock orders using staked USDC, committing to prove within deadline
+5. **Proof Generation**: Provers compute and submit proofs using GPU acceleration
+6. **Rewards/Slashing**: Valid proofs earn rewards; invalid/late proofs result in stake slashing
 
 ---
 
@@ -30,7 +55,6 @@ First, you need to know how **Boundless Prover market** actually works to realiz
   * Minimum: one 8GB vRAM GPU
   * Recommended to be competetive: 10x GPU with min 8GB vRAM
   * Recomended GPU models are 4090, 5090 and L4.
-> * I've tested the new release with only a 80GB vRAM GPU, I'll update here when I just tested out lower GPUs.
 > * You better test it out with single GPUs by lowering your configurations later by reading the further sections.
 
 ### Software
@@ -53,14 +77,100 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
  * **Beginner Guide**
   * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU).
-  
+
+---
+
+# Automated Setup
+For a streamlined installation experience, you can use the automated installation script that handles all dependencies, configuration, and setup automatically.
+
+## Rent GPU
+* **Choosing the Right GPU Template**
+  * Rent an `Ubuntu VM` template for your GPU instance.
+  * Avoid `CUDA` or `Pytorch` templates, as they are incompatible with the Prover installation.
+
+* **Why Ubuntu VM is Required**
+  * Prover installation uses `Docker`. Since `CUDA` or `Pytorch` templates run your GPU instance inside a Docker container, you cannot run the Prover Docker inside another Docker instance.
+
+* **Recommended GPU Providers**
+  * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
+
+ * **Beginner Guide**
+  * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU).
+
+---
+
+## Download and Run the Installer
+
+```bash
+# Download the installation script
+wget https://raw.githubusercontent.com/0xmoei/boundless/main/install_prover.sh
+
+# Make it executable
+chmod +x install_prover.sh
+
+# Run the installer
+./install_prover.sh
+```
+
+### Installation Options
+
+```bash
+# Run alone or with options
+./install_prover.sh
+
+Options:
+  --allow-root        # Add this flag in front of the command to allow running as root without prompting
+
+```
+
+### What the Automated Installer Does
+
+1. **System Verification**: Checks Ubuntu version compatibility
+2. **Complete Dependency Installation**: 
+   - System packages and build tools
+   - GPU drivers and CUDA toolkit
+   - Docker and NVIDIA Container Toolkit
+   - Rust toolchain and RISC Zero tools
+   - PostgreSQL, Redis, and required services
+3. **Automatic GPU Detection**: 
+   - Detects single or multiple GPUs
+   - Configures `compose.yml` automatically
+   - Sets optimal `SEGMENT_SIZE` based on GPU VRAM
+4. **Interactive Network Configuration**: 
+   - Choose between Base Mainnet, Base Sepolia, or Ethereum Sepolia
+   - Configure RPC endpoint
+   - Securely input private key
+5. **Broker Configuration**: Interactive setup of key parameters
+6. **Management Script Creation**: Creates `prover.sh` for easy operation
+
+### Using the Management Script
+
+After installation, navigate to the installation directory and run:
+
+```bash
+cd ~/boundless
+./prover.sh
+```
+
+The management script provides an interactive menu with:
+- **Service Management**: Start/stop broker, view logs, health checks
+- **Configuration**: Change network, update private key, edit broker config
+- **Stake Management**: Deposit USDC stake, check balance
+- **Performance Testing**: Run benchmarks with order IDs
+- **Monitoring**: Real-time GPU monitoring
+
+### Log Files
+
+The automated installer creates detailed logs:
+- Installation log: `/var/log/boundless_prover_setup.log`
+- Error log: `/var/log/boundless_prover_error.log`
+
 ---
 
 # Manual Setup
 Here is the step by step guide to Install and run your Prover smoothly, but please pay attention to these notes:
 * Read every single word of this guide, if you really want to know what you are doing.
 * There is an [Prover+Broker Optimization](https://github.com/0xmoei/boundless/blob/main/README.md#bento-prover--broker-optimizations) section where you need to read after setting up prover.
-
 
 
 ## Dependecies
@@ -567,3 +677,9 @@ systemctl restart docker
 ## Getting tens of `Locked` orders on prover's [explorer](https://explorer.beboundless.xyz/)
 * It's due to RPC issues, check your logs.
 * You can increase `txn_timeout = 45` in `broker.toml` file to increase the seconds of transactions confirmations.
+
+
+
+
+
+
