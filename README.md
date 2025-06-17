@@ -41,9 +41,6 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 ---
 
 ## Rent GPU
-* **Beginner Guide**
-  * For those new to renting GPUs, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU) for step-by-step instructions.
-
 * **Choosing the Right GPU Template**
   * Rent an `Ubuntu VM` template for your GPU instance.
   * Avoid `CUDA` or `Pytorch` templates, as they are incompatible with the Prover installation.
@@ -53,10 +50,13 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
 * **Recommended GPU Providers**
   * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
+
+ * **Beginner Guide**
+  * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU).
   
 ---
 
-# Setup
+# Manual Setup
 Here is the step by step guide to Install and run your Prover smoothly, but please pay attention to these notes:
 * Read every single word of this guide, if you really want to know what you are doing.
 * There is an [Prover+Broker Optimization](https://github.com/0xmoei/boundless/blob/main/README.md#bento-prover--broker-optimizations) section where you need to read after setting up prover.
