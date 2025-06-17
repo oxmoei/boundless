@@ -75,7 +75,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 * **Recommended GPU Providers**
   * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
 
- * **Beginner Guide**
+* **Beginner Guide**
   * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU).
 
 ---
