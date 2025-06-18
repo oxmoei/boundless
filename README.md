@@ -83,7 +83,7 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 # Automated Setup
 For an automated installation and prover management, you can use this script that handles all dependencies, configuration, setup, and prover management automatically.
 
-## Download and Run the Installer
+## Download and Run the Installer:
 ```bash
 # Update packages
 apt update && apt upgrade -y
@@ -103,33 +103,33 @@ chmod +x install_prover.sh
 ./install_prover.sh
 ```
 
-### Installation Options
+### During Installation:
+* The script will automatically detect your GPU configuration
+* You'll be prompted for:
+  * Network selection (mainnet/testnet)
+  * RPC URL: Read [Get RPC](#get-rpc) for more details
+  * Private key (input is hidden)
+  * Broker config parameters: Read [Broker Optimization](#broker-optimization) for more details
 
-```bash
-# Run
-./install_prover.sh
-```
 
-### Using the Management Script
-
+### Post-Installation Management Script:
 After installation, to Run or Configure your Prover, you have to navigate to the installation directory and run Management Script `prover.sh`:
 
 ```bash
 cd ~/boundless
 ./prover.sh
 ```
-
-The management script provides an interactive menu with:
+The management script provides a menu with:
 - **Service Management**: Start/stop broker, view logs, health checks
-- **Configuration**: Change network, update private key, edit broker config
+- **Configuration**: [Change network](#get-rpc), update private key, edit [broker config](#broker-optimization)
 - **Stake Management**: Deposit USDC stake, check balance
 - **Performance Testing**: Run benchmarks with order IDs
 - **Monitoring**: Real-time GPU monitoring
 
 
 ## Modify CPU/RAM of x-exec-agent-common & gpu-prove-agent
-The `prover.sh` script manages all configurations (.e.g `broker.toml`), but to optimize and add some RAM and CPU to your `compose.yml`, you can navigate to [x-exec-agent-common](#modify-cpu/ram-of-gpu_prove_agent) & [gpu-prove-agent sections](modify-cpu/ram-of-gpu_prove_agent)
-* Re-run your broker after configurations to `compose.yml`
+The `prover.sh` script manages all broker configurations (.e.g `broker.toml`), but to optimize and add some RAM and CPU to your `compose.yml`, you can navigate to [x-exec-agent-common](#modify-cpu/ram-of-gpu_prove_agent) & [gpu-prove-agent sections](modify-cpu/ram-of-gpu_prove_agent)
+* Re-run your broker after doing configurations to `compose.yml`
 
 ---
 
