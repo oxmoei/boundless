@@ -434,7 +434,7 @@ source .env.broker
 ## Deposit Stake
 Provers will need to deposit` USDC` to the Boundless Market contract to use as stake when locking orders.
 
-Note that `USDC` has a different address on each network. Refer to the [Deployments page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) for the addresses. USDC can be obtained on testnets from the [Circle Faucet](https://faucet.circle.com/).
+Note that `USDC` has a different address on each network. Refer to the [Deployments page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) for the addresses. USDC can be obtained on testnets from the [Circle Faucet](https://faucet.circle.com/). You can alsi [Bridge](https://superbridge.app/base-sepolia) USDC.
 
 **Add `boundless` CLI to bash:**
 ```
