@@ -106,37 +106,13 @@ chmod +x install_prover.sh
 ### Installation Options
 
 ```bash
-# Run alone or with options
+# Run
 ./install_prover.sh
-
-Options:
-  --allow-root        # Add this flag in front of the command to allow running as root without prompting
-
 ```
-
-### What the Automated Installer Does
-
-1. **System Verification**: Checks Ubuntu version compatibility
-2. **Complete Dependency Installation**: 
-   - System packages and build tools
-   - GPU drivers and CUDA toolkit
-   - Docker and NVIDIA Container Toolkit
-   - Rust toolchain and RISC Zero tools
-   - PostgreSQL, Redis, and required services
-3. **Automatic GPU Detection**: 
-   - Detects single or multiple GPUs
-   - Configures `compose.yml` automatically
-   - Sets optimal `SEGMENT_SIZE` based on GPU VRAM
-4. **Interactive Network Configuration**: 
-   - Choose between Base Mainnet, Base Sepolia, or Ethereum Sepolia
-   - Configure RPC endpoint
-   - Securely input private key
-5. **Broker Configuration**: Interactive setup of key parameters
-6. **Management Script Creation**: Creates `prover.sh` for easy operation
 
 ### Using the Management Script
 
-After installation, navigate to the installation directory and run:
+After installation, to Run or Configure your Prover, you have to navigate to the installation directory and run Management Script `prover.sh`:
 
 ```bash
 cd ~/boundless
@@ -150,11 +126,10 @@ The management script provides an interactive menu with:
 - **Performance Testing**: Run benchmarks with order IDs
 - **Monitoring**: Real-time GPU monitoring
 
-### Log Files
 
-The automated installer creates detailed logs:
-- Installation log: `/var/log/boundless_prover_setup.log`
-- Error log: `/var/log/boundless_prover_error.log`
+## Modify CPU/RAM of x-exec-agent-common & gpu-prove-agent
+The `prover.sh` script manages all configurations (.e.g `broker.toml`), but to optimize and add some RAM and CPU to your `compose.yml`, you can navigate to [x-exec-agent-common](#modify-cpu/ram-of-gpu_prove_agent) & [gpu-prove-agent sections](modify-cpu/ram-of-gpu_prove_agent)
+* Re-run your broker after configurations to `compose.yml`
 
 ---
 
