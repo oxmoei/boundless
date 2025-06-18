@@ -225,7 +225,7 @@ install_basic_deps() {
         automake autoconf tmux htop nvme-cli libgbm1 pkg-config
         libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev
         libclang-dev ninja-build nvtop ubuntu-drivers-common
-        gnupg ca-certificates lsb-release postgresql postgresql-client
+        gnupg ca-certificates lsb-release postgresql-client
     )
     info "Installing basic dependencies..."
     if ! check_dpkg_status; then
