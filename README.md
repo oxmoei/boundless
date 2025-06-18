@@ -45,7 +45,6 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 
 ---
 
-
 ## Requirements
 ### Hardware
 * CPU - 16 threads, reasonable single core boost performance (>3Ghz)
@@ -65,18 +64,27 @@ First, you need to know how **Boundless Prover market** actually works to realiz
 ---
 
 ## Rent GPU
-* **Choosing the Right GPU Template**
-  * Rent an `Ubuntu VM` template for your GPU instance.
-  * Avoid `CUDA` or `Pytorch` templates, as they are incompatible with the Prover installation.
 
-* **Recommended GPU Providers**
-  * **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: Affordable GPU provider supporting `Ubuntu VM` templates with crypto payment options.
- 
-* **Why Ubuntu VM is Required**
-  * Prover installation uses `Docker`. Since `CUDA` or `Pytorch` templates run your GPU instance inside a Docker container, you cannot run the Prover Docker inside another Docker instance.
+**Recommended GPU Providers**
+* **[QuickPod](https://console.quickpod.io?affiliate=f621de18-b6ac-4416-b87f-01f29f8339b5)**: Cheap, No SSH-key needed
+  * Visit **[QuickPod](https://console.quickpod.io?affiliate=f621de18-b6ac-4416-b87f-01f29f8339b5)**
+  * Signup and verify your email in inbox
+  * Deposit crytocurrency by clicking on  `Add` in the top right
+  * Click on `Templates` and then find `ubuntu Docker in Docker (DIND)`
+  * It redirects you to `Search Console` section to select your GPU nd click on `Create Pod`
+  * Recommended: Filter 4090/3090 GPUs and Sort by cheapest price to find the most affordable 3090/4090s
+  * You can even rent lower-end GPUs for cheaper price (8GB vRAM supported by boundless)
+  * Go to `Pods` section and wait until your GPU be deployed
+  * Click on `Connect` and choose one of two options below:
+  * 1- `Connect to web`: To redirect you to a web based terminal of your GPU
+  * 2- `SSH Command`: Copy the SSH command and Execute it in a terminal in your system (e.g. Windows Powershell)
 
-* **Beginner Guide**
-  * For those new to renting GPUs, to create your SSH Key, refer to [this guide](https://github.com/0xmoei/Rent-and-Config-GPU), then proceed with renting a Vast GPU using this [link](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM).
+![image](https://github.com/user-attachments/assets/fb8471c0-43d1-40d9-8370-63da6f0e5181)
+
+
+* **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: SSH-Key needed
+  * Rent **VM Ubuntu** [template](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)
+  * Refer to this [Guide](https://github.com/0xmoei/Rent-and-Config-GPU) to generate SSH-Key, Rent GPU and connect to your Vast GPU
 
 ---
 
