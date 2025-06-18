@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --allow-root        Allow running as root without prompting"
             echo "  --force-reclone     Automatically delete and re-clone the directory if it exists"
-            echo "  --start-immediately Automatically start the prover after installation"
+            echo "  --start-immediately Automatically run the management script"
             echo "  --help              Show this help message"
             exit 0
             ;;
@@ -814,10 +814,10 @@ configure_network() {
     info "Selected: $NETWORK_NAME"
     echo -e "\n${BOLD}RPC Configuration:${RESET}"
     echo "RPC must support eth_newBlockFilter. Recommended providers:"
+    echo "- Alchemy (set lookback_block=<120)"
     echo "- BlockPi (free for Base networks)"
-    echo "- Alchemy"
     echo "- Chainstack (set lookback_blocks=0)"
-    echo "- Your own node"
+    echo "- Your own node RPC"
     prompt "Enter RPC URL: "
     read -r RPC_URL
     if [[ -z "$RPC_URL" ]]; then
@@ -1696,7 +1696,7 @@ EOF
 
 # Main installation flow
 main() {
-    echo -e "${BOLD}${CYAN}Boundless Prover Node Setup${RESET}"
+    echo -e "${BOLD}${CYAN}Boundless Prover Node Setup by 0xMoei${RESET}"
     echo "========================================"
     mkdir -p "$(dirname "$LOG_FILE")"
     touch "$LOG_FILE"
@@ -1704,8 +1704,8 @@ main() {
     echo "[START] Installation started at $(date)" >> "$LOG_FILE"
     echo "[START] Installation started at $(date)" >> "$ERROR_LOG"
     info "Logs will be saved to:"
-    info "  - Full log: $LOG_FILE"
-    info "  - Error log: $ERROR_LOG"
+    info "  - Full log: cat $LOG_FILE"
+    info "  - Error log: cat $ERROR_LOG"
     echo
     if [[ $EUID -eq 0 ]]; then
         if [[ "$ALLOW_ROOT" == "true" ]]; then
@@ -1760,7 +1760,7 @@ main() {
         cd "$INSTALL_DIR"
         ./prover.sh
     else
-        prompt "Start prover now? (y/N): "
+        prompt "Go to management script now? (y/N): "
         read -r start_now
         if [[ "$start_now" =~ ^[yY]$ ]]; then
             cd "$INSTALL_DIR"
