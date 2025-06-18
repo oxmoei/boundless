@@ -110,6 +110,7 @@ chmod +x install_prover.sh
 # Run the installer
 ./install_prover.sh
 ```
+* Installation may take time since we are installing drivers and building big files, so no worries.
 
 ### During Installation:
 * The script will automatically detect your GPU configuration
