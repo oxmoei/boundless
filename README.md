@@ -109,7 +109,7 @@ chmod +x install_prover.sh
   * Network selection (mainnet/testnet)
   * RPC URL: Read [Get RPC](#get-rpc) for more details
   * Private key (input is hidden)
-  * Broker config parameters: Read [Broker Optimization](#broker-optimization) for more details
+  * Broker config parameters: Visit [Broker Optimization](#broker-optimization) to read parameters details
 
 
 ### Post-Installation Management Script:
