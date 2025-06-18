@@ -135,9 +135,11 @@ The management script provides a menu with:
 - **Monitoring**: Real-time GPU monitoring
 
 
-## Modify CPU/RAM of x-exec-agent-common & gpu-prove-agent
+### Modify CPU/RAM of x-exec-agent-common & gpu-prove-agent
 The `prover.sh` script manages all broker configurations (.e.g `broker.toml`), but to optimize and add some RAM and CPU to your `compose.yml`, you can navigate to [x-exec-agent-common](#modify-cpu/ram-of-gpu_prove_agent) & [gpu-prove-agent sections](modify-cpu/ram-of-gpu_prove_agent)
 * Re-run your broker after doing configurations to `compose.yml`
+
+ Even if you setup using automated script, I recommend you to read **[Manual Setup](#manual-setup)** and **[Bento (Prover) & Broker Optimizations](#-bento-(prover)-&-broker-pptimizations)** sections to learn to optimize your prover.
 
 ---
 
