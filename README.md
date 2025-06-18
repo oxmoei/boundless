@@ -140,7 +140,7 @@ The `prover.sh` script manages all broker configurations (.e.g `broker.toml`), b
 * Re-run your broker after doing configurations to `compose.yml`
 
 ### Note
-Even if you setup using automated script, I recommend you to read **[Manual Setup](#manual-setup)** and **[Bento (Prover) & Broker Optimizations](#bento-(prover)-&-broker-optimizations)** sections to learn to optimize your prover.
+Even if you setup using automated script, I recommend you to read **[Manual Setup](#manual-setup)** and **[Bento (Prover) & Broker Optimizations](#bento-prover--broker-optimizations)** sections to learn to optimize your prover.
 
 ---
 
