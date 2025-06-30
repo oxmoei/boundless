@@ -603,6 +603,9 @@ We were using `.env` files (e.g.`.env.base`) for setting the network, we need to
       - .env.base
 ```
 
+**Step 3:  Add the `broker2-data` Volume**:
+* At the end of your `compose.yml`, in the `volumes` section, add the new volume for `broker2`:
+
 For example the `broker`, `broker2` services in my `compose.yml`, supporting two `base` & `eth sepolia` networks with above configurations:
 
 ```yaml
@@ -684,9 +687,7 @@ volumes:
 ```
 
 
-**Step 3:  Add the `broker2-data` Volume**:
 
-At the end of your `compose.yml`, in the `volumes` section, add the new volume for `broker2`:
 ```yaml
 volumes:
   redis-data:
