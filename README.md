@@ -686,18 +686,6 @@ volumes:
   broker2-data:
 ```
 
-
-
-```yaml
-volumes:
-  redis-data:
-  postgres-data:
-  minio-data:
-  grafana-data:
-  broker-data:
-  broker2-data:
-```
-
 ### Modify `broker.toml`
 Each broker instance requires separate `broker.toml` files (e.g., `broker.toml`, `broker2.toml`, etc.)
 
