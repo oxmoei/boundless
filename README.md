@@ -701,9 +701,14 @@ Then, modify configuation values for each network, keeping the following in mind
 
 * The `peak_prove_khz` setting is shared across all brokers.
   * For example, if you have benchmarked your broker to be able to prove at `500kHz`, the values in each config should not sum up to be more than `500kHz`.
-* `max_concurrent_preflights` is set to a value that the `bento` cluster can keep up with.
-  * It is recommended that the max concurrent preflights across all networks is less than the number of `exec agents` you have specified in your `compose.yml`.
-* `max_concurrent_proofs` is a per-broker configuration, and is not shared across brokers.
+  * For instance: `broker.toml`: `peak_prove_khz = 250` & `broker2.toml`: `peak_prove_khz = 250`
+
+* `max_concurrent_preflights` setting limits the number of pricing tasks (preflight executions) a broker can run simultaneously. The total `max_concurrent_preflights` across all brokers (for all networks) should be less than or equal to the number of `exec_agent` services in your `compose.yml`
+  * For instance: If you have two `exec_agent` services (`exec_agent0` and `exec_agent1`). Thus, the sum of `max_concurrent_preflights` across `broker` and `broker2` should not exceed `2`.
+
+* `max_concurrent_proofs`
+  * Unlike `peak_prove_khz`, the `max_concurrent_proofs` setting is specific to each broker and not shared. It controls the maximum number of proof generation tasks a single broker can process simultaneously.
+  * For instance: With only one GPU, your cluster can typically handle only one proof at a time, as proof generation is GPU-intensive. So you'd better to set `max_concurrent_proofs = 1`
 
 
 ---
