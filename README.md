@@ -574,7 +574,148 @@ Read more about them in [official doc](https://docs.beboundless.xyz/provers/brok
   * As in the following image of an order in [explorer](https://explorer.beboundless.xyz/), the order fullfilled after the deadline and prover got slashed because of the delay in delivering
  
  ![image](https://github.com/user-attachments/assets/bc497b61-01fe-451a-aeb1-de35efca56af)
+
+---
+
+## Multi Brokers
+You can run multiple brokers simultaneously with a single Bento client to generate proofs on different networks.
+* You configurations might be different than mine and so you can ask AI chats to modify them. I give you the clues and the example of my current codes
+* Generally, you have to make changes in these files: `compose.yml`, `broker.toml`, `.env` files (e.g. `.env.base-sepolia`)
+
+### Modify `compose.yml`
+
+**Step 1:  Add the `broker2` Service**:
+
+In the services section, after your existing `broker` service, add the following `broker2` service. This mirrors the original `broker` configuration but uses a different database and configuration file.
+* What do we change in `broker` to add to `broker2`?
+ * Name changes to `broker2`
+ * `source: ./broker2.toml`
+ * `broker2-data:/db/`
+ * Updated `--db-url` to `'sqlite:///db/broker2.db'`
+
+**Step 2:  Environment Variables (`.env` files) for Multi-Broker Setup**:
+
+We were using `.env` files (e.g.`.env.base`) for setting the network, we need to link these `.env` files with each broker (.e.g `broker`, `broker1`, `broker3`) in our `compose.yml` file, so each broker runs on the specified network at startup.
+* add the following lines after `volumes` of each `broker` service
+```
+    env_file:
+      - .env.base
+```
+
+For example the `broker`, `broker2` services in my `compose.yml`, supporting two `base` & `eth sepolia` networks with above configurations:
+
+```yaml
+  broker:
+    restart: always
+    depends_on:
+      - rest_api
+      - gpu_prove_agent0
+      - exec_agent0
+      - exec_agent1
+      - aux_agent
+      - snark_agent
+      - redis
+      - postgres
+    profiles: [broker]
+    build:
+      context: .
+      dockerfile: dockerfiles/broker.dockerfile
+    mem_limit: 2G
+    cpus: 2
+    stop_grace_period: 3h
+    volumes:
+      - type: bind
+        source: ./broker.toml
+        target: /app/broker.toml
+      - broker-data:/db/
+    network_mode: host
+    env_file:
+      - .env.base
+    environment:
+      RUST_LOG: ${RUST_LOG:-info,broker=debug,boundless_market=debug}
+    entrypoint: /app/broker --db-url 'sqlite:///db/broker.db' --set-verifier-address ${SET_VERIFIER_ADDRESS} --boundless-market-address ${BOUNDLESS_MARKET_ADDRESS} --config-file /app/broker.toml --bento-api-url http://localhost:8081
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  broker2:
+    restart: always
+    depends_on:
+      - rest_api
+      - gpu_prove_agent0
+      - exec_agent0
+      - exec_agent1
+      - aux_agent
+      - snark_agent
+      - redis
+      - postgres
+    profiles: [broker]
+    build:
+      context: .
+      dockerfile: dockerfiles/broker.dockerfile
+    mem_limit: 2G
+    cpus: 2
+    stop_grace_period: 3h
+    volumes:
+      - type: bind
+        source: ./broker2.toml
+        target: /app/broker.toml
+      - broker2-data:/db/
+    network_mode: host
+    env_file:
+      - .env.eth-sepolia
+    environment:
+      RUST_LOG: ${RUST_LOG:-info,broker=debug,boundless_market=debug}
+    entrypoint: /app/broker --db-url 'sqlite:///db/broker2.db' --set-verifier-address ${SET_VERIFIER_ADDRESS} --boundless-market-address ${BOUNDLESS_MARKET_ADDRESS} --config-file /app/broker.toml --bento-api-url http://localhost:8081
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+volumes:
+  redis-data:
+  postgres-data:
+  minio-data:
+  grafana-data:
+  broker-data:
+  broker2-data:
+```
+
+
+**Step 3:  Add the `broker2-data` Volume**:
+
+At the end of your `compose.yml`, in the `volumes` section, add the new volume for `broker2`:
+```yaml
+volumes:
+  redis-data:
+  postgres-data:
+  minio-data:
+  grafana-data:
+  broker-data:
+  broker2-data:
+```
+
+### Modify `broker.toml`
+Each broker instance requires separate `broker.toml` files (e.g., `broker.toml`, `broker2.toml`, etc.)
+
+You can create the new broker config file that the second broker will use:
+```bash
+# Copy from an existing broker config file
+cp broker.toml broker2.toml
  
+# Or creating one from a fresh template
+cp broker-template.toml broker2.toml
+```
+Then, modify configuation values for each network, keeping the following in mind:
+
+* The `peak_prove_khz` setting is shared across all brokers.
+  * For example, if you have benchmarked your broker to be able to prove at `500kHz`, the values in each config should not sum up to be more than `500kHz`.
+* `max_concurrent_preflights` is set to a value that the `bento` cluster can keep up with.
+  * It is recommended that the max concurrent preflights across all networks is less than the number of `exec agents` you have specified in your `compose.yml`.
+* `max_concurrent_proofs` is a per-broker configuration, and is not shared across brokers.
+
+
 ---
 
 # Safe Update or Stop Prover
