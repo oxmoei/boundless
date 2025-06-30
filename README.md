@@ -21,6 +21,7 @@ This guide covers both **automated** and **manual** installation methods for Ubu
 - [Bento (Prover) & Broker Optimizations](#bento-prover--broker-optimizations)
   - [Segment Size (Prover)](#segment-size-prover)
   - [Broker Optimization](#broker-optimization)
+  - [Multi Brokers](#multi-brokers)
 - [Safe Update or Stop Prover](#safe-update-or-stop-prover)
 - [Debugging](#debugging)
 
