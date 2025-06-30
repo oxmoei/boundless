@@ -13,47 +13,45 @@ This guide outlines the specific parts of the file to change.
 * Open the `compose.yml` file in a text editor.
 * Locate the `gpu_prove_agentX` services (lines defining `gpu_prove_agent0` to `gpu_prove_agent3`) and the broker service’s `depends_on` list.
 
-## Option 1: To Add a GPU
+## Option 1: To Add a GPU (If you have more than 4 GPUs)
 ### 1- Duplicate a `gpu_prove_agent` service definition:
 * Copy an existing block, such as the one for `gpu_prove_agent3`:
 ```
-gpu_prove_agent3:
-  <<: *agent-common
-  runtime: nvidia
-  mem_limit: 4G
-  cpus: 4
-  entrypoint: /app/agent -t prove
-  deploy:
-    resources:
-      reservations:
-        devices:
-          - driver: nvidia
-            device_ids: ['3']
-            capabilities: [gpu]
+  gpu_prove_agent3:
+    <<: *agent-common
+    mem_limit: 4G
+    cpus: 4
+    entrypoint: /app/agent -t prove
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['3']
+              capabilities: [gpu]
 ```
 * Rename it to the next sequential number (e.g., `gpu_prove_agent4` for a fifth GPU).
 * Update the `device_ids` field to the new GPU ID (e.g., change `'3'` to `'4'`).
 * Example for `gpu_prove_agent4`:
 ```
-gpu_prove_agent4:
-  <<: *agent-common
-  runtime: nvidia
-  mem_limit: 4G
-  cpus: 4
-  entrypoint: /app/agent -t prove
-  deploy:
-    resources:
-      reservations:
-        devices:
-          - driver: nvidia
-            device_ids: ['4']
-            capabilities: [gpu]
+  gpu_prove_agent4:
+    <<: *agent-common
+    mem_limit: 4G
+    cpus: 4
+    entrypoint: /app/agent -t prove
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['4']
+              capabilities: [gpu]
 ```
 
-### 2- Update the `broker` service’s `depends_on` list:
-Find the `broker` service:
+### 2- Update the `x-broker-common` service’s `depends_on` list:
+Find the `x-broker-common` service:
 ```yaml
-broker:
+x-broker-common: &broker-common
   restart: always
   depends_on:
     - rest_api
@@ -67,61 +65,66 @@ broker:
     - snark_agent
     - redis
     - postgres
+  profiles: [broker]
+  build:
+    context: .
+    dockerfile: dockerfiles/broker.dockerfile
+  mem_limit: 2G
+  cpus: 2
+  stop_grace_period: 3h
+  network_mode: host
 ```
 
 * Add the new service name (e.g., `gpu_prove_agent4`) to the depends_on list:
 ```yaml
-depends_on:
-  - rest_api
-  - gpu_prove_agent0
-  - gpu_prove_agent1
-  - gpu_prove_agent2
-  - gpu_prove_agent3
-  - gpu_prove_agent4
-  - exec_agent0
-  - exec_agent1
-  - aux_agent
-  - snark_agent
-  - redis
-  - postgres
+  depends_on:
+    - rest_api
+    - gpu_prove_agent0
+    - gpu_prove_agent1
+    - gpu_prove_agent2
+    - gpu_prove_agent3
+    - gpu_prove_agent4
+    - exec_agent0
+    - exec_agent1
+    - aux_agent
+    - snark_agent
+    - redis
+    - postgres
 ```
 
 
-## Option 2: To Remove a GPU
+## Option 2: To Remove a GPU (If you have less than 4 GPUs)
 ### 1- Delete a `gpu_prove_agent` service definition:
 * Remove the entire block for the service you no longer need (e.g., `gpu_prove_agent3`):
 ```yaml
-gpu_prove_agent3:
-  <<: *agent-common
-  runtime: nvidia
-  mem_limit: 4G
-  cpus: 4
-  entrypoint: /app/agent -t prove
-  deploy:
-    resources:
-      reservations:
-        devices:
-          - driver: nvidia
-            device_ids: ['3']
-            capabilities: [gpu]
+  gpu_prove_agent3:
+    <<: *agent-common
+    mem_limit: 4G
+    cpus: 4
+    entrypoint: /app/agent -t prove
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['3']
+              capabilities: [gpu]
 ```
 
 ### 2- Update the broker service’s depends_on list:
-* Remove the corresponding service name (e.g., `gpu_prove_agent3`) from the `depends_on` list in the `broker` service:
+* Remove the corresponding service name (e.g., `gpu_prove_agent3`) from the `depends_on` list in the `x-broker-common` service:
 ```yaml
-gpu_prove_agent3:
-  <<: *agent-common
-  runtime: nvidia
-  mem_limit: 4G
-  cpus: 4
-  entrypoint: /app/agent -t prove
-  deploy:
-    resources:
-      reservations:
-        devices:
-          - driver: nvidia
-            device_ids: ['3']
-            capabilities: [gpu]
+  depends_on:
+    - rest_api
+    - gpu_prove_agent0
+    - gpu_prove_agent1
+    - gpu_prove_agent2
+    - exec_agent0
+    - exec_agent1
+    - aux_agent
+    - snark_agent
+    - redis
+    - postgres
 ```
 
 
