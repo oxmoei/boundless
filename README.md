@@ -710,6 +710,7 @@ Then, modify configuation values for each network, keeping the following in mind
   * Unlike `peak_prove_khz`, the `max_concurrent_proofs` setting is specific to each broker and not shared. It controls the maximum number of proof generation tasks a single broker can process simultaneously.
   * For instance: With only one GPU, your cluster can typically handle only one proof at a time, as proof generation is GPU-intensive. So you'd better to set `max_concurrent_proofs = 1`
 
+ * `lockin_priority_gas`: Make sure you configure the gwei for according to each network
 
 ---
 
