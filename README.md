@@ -363,10 +363,10 @@ There are three `.env` files with the official configurations of each network (`
   * You can search for `eth_newBlockFilter` in the documents of third-party RPC providers to see if they support it or not.
 
 RPC providers I know they support `eth_newBlockFilter` and I recommend:
+* [Alchemy](https://dashboard.alchemy.com/apps):
+  * Alchemy is the best provider so far
 * [BlockPi](https://dashboard.blockpi.io/):
   * Support free Base Mainnet, Base Sepolia. ETH sepolia costly as $49
-* [Alchemy](https://dashboard.alchemy.com/apps):
-  * Team recommends but I couldn't pass Cloudflare puzzle yet. Try it out yourself.
 * [Chainstack](https://console.chainstack.com/):
   * You have to change the value of `lookback_blocks` from `300` to `0`, because chainstack's free plan doesn't support `eth_getlogs`, so you won't be able to check last 300 blocks for open orders at startup (which is not very important i believe)
   * Check **Broker Optimization** section to know how to change `lookback_blocks` value in `broker.toml`
