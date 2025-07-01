@@ -353,7 +353,7 @@ RUST_LOG=info bento_cli -c 32
 ---
 
 ## Configure Network
-Boundless is available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`, marking the first time real funds will be used in Boundless.
+Boundless is available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`.
 
 ### Set Networks
 There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
