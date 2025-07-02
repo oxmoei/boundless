@@ -494,7 +494,7 @@ apt install postgresql-client
 psql --version
 ```
 
-1. Recommended: Benchmark by simulating an order id: (make sure Bento is running):
+**1. Recommended: Benchmark by simulating an order id: (make sure Bento is running):**
 ```bash
 boundless proving benchmark --request-ids <IDS>
 ```
@@ -509,7 +509,7 @@ boundless proving benchmark --request-ids <IDS>
 
 > You can use `nvtop` command in a seprated terminal to check your GPU utilizations.
 
-2. Benchmark using Harness Test
+**2. Benchmark using Harness Test**
 * Optionally you can benchmark GPUs by a ITERATION_COUNT:.
 ```
 RUST_LOG=info bento_cli -c <ITERATION_COUNT>
