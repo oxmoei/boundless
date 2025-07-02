@@ -137,6 +137,19 @@ Here is the step by step guide to Install and run your Prover smoothly, but plea
 
 
 ## Dependecies
+### Delete Preserved Variables
+
+* Open `/etc/environment`:
+```bash
+sudo nano /etc/environment
+```
+Delete everything.
+
+* Add this code to it:
+```
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+```
+
 ### Install & Update Packages
 ```bash
 apt update && apt upgrade -y
