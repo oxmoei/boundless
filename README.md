@@ -490,7 +490,7 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 Install psql:
 ```bash
 apt update
-apt install postgresql postgresql-client
+apt install postgresql-client
 psql --version
 ```
 
