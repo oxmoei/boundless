@@ -362,10 +362,7 @@ RUST_LOG=info bento_cli -c 32
 
 ---
 
-## Configure Network & Private
-Boundless is currently available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`.
-
-### Get RPC
+## Get RPC
 * According to what network you want to run your prover on, you'll need an RPC endpoint that supports `eth_newBlockFilter` event.
   * You can search for `eth_newBlockFilter` in the documents of third-party RPC providers to see if they support it or not.
 
@@ -385,6 +382,7 @@ RPC providers I know they support `eth_newBlockFilter` and I recommend:
 ---
 
 ## Set Network and Wallet
+Boundless is currently available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`.
 ### Method 1: Environment Variables
 Before running prover, simply execute these commands:
 ```bash
