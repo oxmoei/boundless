@@ -302,6 +302,7 @@ Larger segment size caused more proving (bento) performance, but require more GP
 ![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
 
 * Note, when you set a number for `SEGMENT_SIZE`, it sets that number for each GPU identically.
+* The default value of `SEGMENT_SIZE` is `21`, if you have a 24GB vRAM GPU, skip this step
 
 ### Setting SEGMENT_SIZE
 **Configure `SEGMENT_SIZE` in `compose.yml`**
@@ -440,21 +441,7 @@ docker compose logs -fn 100
 # Bento (Prover) & Broker Optimizations
 There are many factors to be optimized to win in provers competetion where you can read the official guide for [broker](https://docs.beboundless.xyz/provers/broker) or [prover](https://docs.beboundless.xyz/provers/performance-optimization)
 
-Here I simplified everything with detailed steps:
-
-## Segment Size (Prover)
-Larger segment sizes more proving (bento) performance, but require more GPU VRAM. To pick the right `SEGMENT_SIZE` for your GPU VRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
-
-![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
-
-### Setting SEGMENT_SIZE
-* `SEGMENT_SIZE` in `compose.yml` file under the `x-exec-agent-common` service is `21`by default. (If you have a 24GB vRAM GPU, skip this step)
-* Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
-* Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
-* You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc if you are using them.
-* If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to [network configuration](https://github.com/0xmoei/boundless/tree/main#configure-network) section to use `.env.broker` as your network configuration.
-
-## Boost pre-flight execution 
+## Boost pre-flight execution
 * `exec_agent` services in `compose.yml` is doing the preflight execution of orders to estimate if prover can bid on them or not.
 * They are important in preflighting orders concurrently and locking them faster to compete with other provers.
   * More `exec_agent` will preflight more orders concurrently.
@@ -487,7 +474,7 @@ Example of `exec_agent` in your `compose.yml`:
 ```
 * To increase agents, addup more lines of these and increase their number by `+1`
 
-## Modify CPU/RAM of gpu_prove_agent
+## Boost Proving GPUs
 * `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
 * In single GPUs, you can increase performance by increasing CPU/RAM of GPU agents.
 * The default number of its CPU and RAM is fine but if you have good system spec, you can increase them for each GPU.
