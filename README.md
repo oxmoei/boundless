@@ -320,7 +320,7 @@ Larger segment size caused more proving (bento) performance, but require more GP
     SEGMENT_SIZE: 19
   entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
   ```
-  * `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 unless `SEGMENT_SIZE` is defined in the container’s `environment`.
+  > `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 unless `SEGMENT_SIZE` is defined in the container’s `environment`.
 
 **Two other options to Configure `SEGMENT_SIZE`**
 * You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env` files like `.env.base-sepolia`,`.env.broker`, etc. if you are using them.
