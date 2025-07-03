@@ -20,6 +20,7 @@ This guide covers both **automated** and **manual** installation methods for Ubu
   - [Run Broker](#run-broker)
 - [Bento (Prover) & Broker Optimizations](#bento-prover--broker-optimizations)
   - [Segment Size (Prover)](#segment-size-prover)
+  - [Benchmarking Bento](#benchmarking-bento)
   - [Broker Optimization](#broker-optimization)
   - [Multi Brokers](#multi-brokers)
 - [Safe Update or Stop Prover](#safe-update-or-stop-prover)
@@ -499,7 +500,7 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 * You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc if you are using them.
 * If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to [network configuration](https://github.com/0xmoei/boundless/tree/main#configure-network) section to use `.env.broker` as your network configurationn.
 
-### Benchmarking Bento
+## Benchmarking Bento
 Install psql:
 ```bash
 apt update
