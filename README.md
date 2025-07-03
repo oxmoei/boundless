@@ -228,6 +228,12 @@ source ~/.bashrc
 
 # Verify boundless-cli:
 boundless -h
+
+# Install Just
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+cargo install just
+just --version
 ```
 
 ---
@@ -288,47 +294,37 @@ To add more GPUs or modify CPU and RAM sepcified to each GPU, replace the curren
 * More/Less than 4 GPUs:
 Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/blob/main/add-remove-gpu.md) to add or remove the number of 4 GPUs in my custom `compose.yml` file
 
-### Modify CPU/RAM of x-exec-agent-common
-* `x-exec-agent-common` service in your `compose.yml` is doing the preflight process of orders to estimate if prover can bid on them or not.
-* More exec agents will be able to preflight and prove more orders concurrently.
-* Increasing is from default value: `2` depends on how many concurrent proofs you want to allow.
-* You see smth like below code as your `x-exec-agent-common` service in your `compose.yml` where you can increase it's memory and cpu cores:
-```yml
-x-exec-agent-common: &exec-agent-common
+---
+
+## Configure Segment Size
+Larger segment size caused more proving (bento) performance, but require more GPU VRAM. To pick the right `SEGMENT_SIZE` for your GPU VRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
+
+![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
+
+* Note, when you set a number for `SEGMENT_SIZE`, it sets that number for each GPU identically.
+
+### Setting SEGMENT_SIZE
+**Configure `SEGMENT_SIZE` in `compose.yml`**
+
+* `SEGMENT_SIZE` in `compose.yml` under the `x-exec-agent-common` service is `21`by default.
+  * You can change the value of `SEGMENT_SIZE` directly in `compose.yml` by adding `SEGMENT_SIZE: 21` in `environment` section of `x-exec-agent-common`
+  * Your `x-exec-agent-common` will be like this:
+  ```yaml
+  x-exec-agent-common: &exec-agent-common
   <<: *agent-common
   mem_limit: 4G
   cpus: 3
   environment:
     <<: *base-environment
     RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
+    SEGMENT_SIZE: 19
   entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
-```
+  ```
+  * `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 unless `SEGMENT_SIZE` is defined in the container’s `environment`.
 
-### Modify CPU/RAM of gpu_prove_agent
-* `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
-* In single GPUs, you can increase performance by increasing CPU/RAM of GPU agents.
-* The default number of its CPU and RAM is fine but if you have good system spec, you can increase them for each GPU.
-* You see smth like below code as your `gpu_prove_agentX` service in your `compose.yml` where you can increase the memory and cpu cores of each gpu agent.
-   ```yml
-     gpu_prove_agent0:
-       <<: *agent-common
-       runtime: nvidia
-       mem_limit: 4G
-       cpus: 4
-       entrypoint: /app/agent -t prove
-       deploy:
-         resources:
-           reservations:
-             devices:
-               - driver: nvidia
-                 device_ids: ['0']
-                 capabilities: [gpu]
-   ```
-* While the default CPU/RAM for each GPU is enough, for single GPUs, you can increase them to increase efiiciency, but don't maximize and always keep some CPU/RAML for other jobs.
-
----
-
-**Note**: `SEGMENT_SIZE` of the prover is set to `21` by default in `x-exec-agent-common` service which applies on all GPUs, and `21` is compatible only with `>20GB vRAM` GPUs, if you have less vRAM, you have to modify it, you can read the [Segment Size](https://github.com/0xmoei/boundless/tree/main#segment-size-prover) section of the guide to modify it.
+**Two other options to Configure `SEGMENT_SIZE`**
+* You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env` files like `.env.base-sepolia`,`.env.broker`, etc. if you are using them.
+* While it's not recommended, you simply can replace `${SEGMENT_SIZE:-21}` in `compose.yml` with the number itself like `entrypoint: /app/agent -t exec --segment-po2 21`
 
 ---
 
@@ -366,11 +362,8 @@ RUST_LOG=info bento_cli -c 32
 
 ---
 
-## Configure Network
-Boundless is available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`.
-
-### Set Networks
-There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
+## Configure Network & Private
+Boundless is currently available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`.
 
 ### Get RPC
 * According to what network you want to run your prover on, you'll need an RPC endpoint that supports `eth_newBlockFilter` event.
@@ -389,56 +382,19 @@ RPC providers I know they support `eth_newBlockFilter` and I recommend:
   * [Guide for ETH Sepolia](https://github.com/0xmoei/geth-prysm-node/blob/main/README.md)
 * Quicknode supports `eth_newBlockFilter` but was NOT compatible with prover somehow idk. It blew up my prover.
 
+---
 
-### Base Mainnet
-* In this step I modify `.env.base`, you can replace it with any of above (Sepolia networks).
-* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia` or ETH Sepolia by modifying `.env.eth-sepolia`
-
-* Configure `.env.base` file:
+## Set Network and Wallet
+### Method 1: Environment Variables
+Before running prover, simply execute these commands:
 ```bash
-nano .env.base
+export RPC_URL="your-rpc-url"
+export PRIVATE_KEY=your-private-key
 ```
-Add the following variables to the `.env.base`.
-* `export RPC_URL=""`:
-  * RPC has to be between `""`
-* `export PRIVATE_KEY=`: Add your EVM wallet private key
+* Replace `your-rpc-url` & `your-private-key` without `0x` perfix, and execute the commands
 
-![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
-
-* Inject `.env.base` to prover:
-```bash
-source .env.base
-```
-* After each terminal close or before any prover startup, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
-
-### Optional: `.env.broker` with custom enviroment
-`.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
-* I recommend to bypass using it, since you may want to switch between network sometimes. It's easier to swap among those above preserved .env files.
-
-* Create `.env.broker`:
-```bash
-cp .env.broker-template .env.broker
-```
-
-* Configure `.env.broker` file:
-```bash
-nano .env.broker
-```
-Add the following variables to the `.env.broker`.
-* `export RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
-  * RPC has to be between `""`
-* `export PRIVATE_KEY=`: Add your EVM wallet private key
-* Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
-  * `export BOUNDLESS_MARKET_ADDRESS=`
-  * `export SET_VERIFIER_ADDRESS=`
-  * `export VERIFIER_ADDRESS=` (add it to .env manually)
-  * `export ORDER_STREAM_URL=`
- 
-* Inject `.env.broker` changes to prover:
-```
-source .env.broker
-```
-  * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
+### Method 2: .env files
+I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake), otherwise you can follow method 2 by going here
 
 ---
 
@@ -498,7 +454,62 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 * Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
 * Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
 * You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc if you are using them.
-* If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to [network configuration](https://github.com/0xmoei/boundless/tree/main#configure-network) section to use `.env.broker` as your network configurationn.
+* If you changed `SEGMENT_SIZE` in `.env.broker`, then head back to [network configuration](https://github.com/0xmoei/boundless/tree/main#configure-network) section to use `.env.broker` as your network configuration.
+
+## Boost pre-flight execution 
+* `exec_agent` services in `compose.yml` is doing the preflight execution of orders to estimate if prover can bid on them or not.
+* They are important in preflighting orders concurrently and locking them faster to compete with other provers.
+  * More `exec_agent` will preflight more orders concurrently.
+  * More CPU/RAM in a single `exec_agent` will preflight orders faster.
+* Increasing it from default value: `2` depends on how many concurrent preflight execution you want to allow.
+* We have two services related to exec agents: `x-exec-agent-common` and `exec_agent`
+  * `x-exec-agent-common`: covers the main settings of all `exec_agent` services including CPU and Memory sepecified to each
+  * `exec_agentX`: They are the agents themselves that you can addup for more concurrent preflight execution. `X` is the number of the agents you want to specify. To add more, you increase `X` by `+1`
+
+Example of `x-exec-agent-common` in your `compose.yml`:
+```yml
+x-exec-agent-common: &exec-agent-common
+  <<: *agent-common
+  mem_limit: 4G
+  cpus: 2
+  environment:
+    <<: *base-environment
+    RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
+  entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
+```
+* You can increase `cpus` and `mem_limit`
+
+Example of `exec_agent` in your `compose.yml`:
+```yaml
+  exec_agent0:
+    <<: *exec-agent-common
+
+  exec_agent1:
+    <<: *exec-agent-common
+```
+* To increase agents, addup more lines of these and increase their number by `+1`
+
+## Modify CPU/RAM of gpu_prove_agent
+* `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
+* In single GPUs, you can increase performance by increasing CPU/RAM of GPU agents.
+* The default number of its CPU and RAM is fine but if you have good system spec, you can increase them for each GPU.
+* You see smth like below code as your `gpu_prove_agentX` service in your `compose.yml` where you can increase the memory and cpu cores of each gpu agent.
+   ```yml
+     gpu_prove_agent0:
+       <<: *agent-common
+       runtime: nvidia
+       mem_limit: 4G
+       cpus: 4
+       entrypoint: /app/agent -t prove
+       deploy:
+         resources:
+           reservations:
+             devices:
+               - driver: nvidia
+                 device_ids: ['0']
+                 capabilities: [gpu]
+   ```
+* While the default CPU/RAM for each GPU is enough, for single GPUs, you can increase them to increase efiiciency, but don't maximize and always keep some CPU/RAML for other jobs.
 
 ## Benchmarking Bento
 Install psql:
@@ -754,6 +765,63 @@ git checkout <new_version_tag>
 ```bash
 just broker
 ```
+
+---
+
+### Network Configurations Method 2: .env files
+I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake), otherwise you can follow method 2 by going here
+
+* There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
+
+### Base Mainnet
+* In this step I modify `.env.base`, you can replace it with any of above (Sepolia networks).
+* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia` or ETH Sepolia by modifying `.env.eth-sepolia`
+
+* Configure `.env.base` file:
+```bash
+nano .env.base
+```
+Add the following variables to the `.env.base`.
+* `export RPC_URL=""`:
+  * RPC has to be between `""`
+* `export PRIVATE_KEY=`: Add your EVM wallet private key
+
+![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
+
+* Inject `.env.base` to prover:
+```bash
+source .env.base
+```
+* After each terminal close or before any prover startup, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
+
+### Optional: `.env.broker` with custom enviroment
+`.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
+* I recommend to bypass using it, since you may want to switch between network sometimes. It's easier to swap among those above preserved .env files.
+
+* Create `.env.broker`:
+```bash
+cp .env.broker-template .env.broker
+```
+
+* Configure `.env.broker` file:
+```bash
+nano .env.broker
+```
+Add the following variables to the `.env.broker`.
+* `export RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
+  * RPC has to be between `""`
+* `export PRIVATE_KEY=`: Add your EVM wallet private key
+* Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
+  * `export BOUNDLESS_MARKET_ADDRESS=`
+  * `export SET_VERIFIER_ADDRESS=`
+  * `export VERIFIER_ADDRESS=` (add it to .env manually)
+  * `export ORDER_STREAM_URL=`
+ 
+* Inject `.env.broker` changes to prover:
+```
+source .env.broker
+```
+  * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
 ---
 
