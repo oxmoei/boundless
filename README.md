@@ -448,7 +448,7 @@ Larger segment sizes more proving (bento) performance, but require more GPU VRAM
 ![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
 
 ### Setting SEGMENT_SIZE
-* `SEGMENT_SIZE` in `compose.yml` under the `x-exec-agent-common` service is `21`by default.
+* `SEGMENT_SIZE` in `compose.yml` file under the `x-exec-agent-common` service is `21`by default. (If you have a 24GB vRAM GPU, skip this step)
 * Also you can change the value of `SEGMENT_SIZE` in `.env.broker` before running the prover.
 * Note, when you set a number for `SEGMENT_SIZE` in env or default yml files, it sets that number for each GPU identically.
 * You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env`s like `.env.base-sepolia`, etc if you are using them.
