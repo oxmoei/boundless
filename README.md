@@ -393,7 +393,7 @@ export PRIVATE_KEY=your-private-key
 * Replace `your-rpc-url` & `your-private-key` without `0x` perfix, and execute the commands
 
 ### Method 2: .env files
-I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake), otherwise you can follow method 2 by going here
+I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake), otherwise you can follow method 2 by going [here](https://github.com/0xmoei/boundless/tree/main?tab=readme-ov-file#network-configurations-method-2-env-files)
 
 ---
 
