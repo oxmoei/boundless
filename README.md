@@ -334,7 +334,7 @@ The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRA
 ## Running Prover
 Boundless is comprised of two major components:
 * `Bento` is the local proving infrastructure. Bento will take the locked orders from `Broker`, prove them and return the result to `Broker`.
-* `Broker` interacts with the Boundless market. `Broker` can submit or request proves from the market.
+* `Broker` interacts with the Boundless market. `Broker` lock orders from the market to send them to `bento` for proving or send generated proofs from `bento` to the Boundless market.
 
 ---
 
