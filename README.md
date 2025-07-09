@@ -461,20 +461,32 @@ In your `compose.yml` file, the `exec_agent` services handle these pre-flight ex
 * Note: Match agent count to CPU/memory capacity.
 
 ### To add more `exec_agent`
-**Edit `compose.yml`**
-* Add agents:
+**1. Edit `compose.yml`**
+* Default `exec_agent` services in `compose.yml`:
+```
+  exec_agent0:
+    <<: *exec-agent-common
+
+  exec_agent1:
+    <<: *exec-agent-common
+```
+
+* Add more agents:
 ```yaml
 exec_agent2:
   <<: *exec-agent-common
 ```
-* Increase numbering (e.g., exec_agent3).
+* You can increase numbering (e.g., exec_agent3) to add even more agents.
 
-**Update `x-broker-common`:**
+**2. Update `x-broker-common`:**
 * Include new agents in `depends_on` to link agents to broker:
 ```yaml
 depends_on:
   - exec_agent2
 ```
+
+* There is also a `x-exec-agent-common` service in `compose.yml` controling the main settings of all Agents like CPU and memory.
+* Default CPU/Memory specified for each agent is enough, however you can increase them.
 
 
 ## Boost Proving GPUs
