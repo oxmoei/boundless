@@ -462,7 +462,7 @@ In your `compose.yml` file, the `exec_agent` services handle these pre-flight ex
 
 ### To add more `exec_agent`
 **1. Edit `compose.yml`**
-* Default `exec_agent` services in `compose.yml`:
+* Default 2 `exec_agent` services in `compose.yml`:
 ```
   exec_agent0:
     <<: *exec-agent-common
