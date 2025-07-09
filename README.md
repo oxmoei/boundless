@@ -192,8 +192,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup update
 
 # Install the Rust Toolchain:
-apt update
-apt install cargo
+sudo apt update
+sudo apt install cargo
 
 # Verify Cargo:
 cargo --version
@@ -358,7 +358,7 @@ RUST_LOG=info bento_cli -c 32
 
 ![image](https://github.com/user-attachments/assets/a67fdfb0-3d22-4a4a-b47a-247567df0d45)
 
-* To check if all your GPUs are utilizing:
+* If you have multiple GPUs, to check if all your GPUs are utilizing:
   *  Increase `32` to `1024`/`2048`/`4096`
   *  Open new terminal with `nvtop` command
   *  Run the test proof and monitor your GPUs utilization.
@@ -413,7 +413,12 @@ source ~/.bashrc
 ```
 boundless account deposit-stake STAKE_AMOUNT
 ```
-* Deposit Stake Balance: `boundless account stake-balance`
+* Make sure you've set `export RPC_URL=` & `export PRIVATE_KEY=` for your prefered network before executing the command.
+
+**Stake Balance:**
+```bash
+boundless account stake-balance
+```
 
 ---
 
@@ -431,7 +436,7 @@ Check the `broker` logs, which has the most important logs of your `order` locki
 docker compose logs -f broker
 
 # For last 100 logs
-docker compose logs -fn 100
+docker compose logs -fn 100 broker
 ```
 
 ![image](https://github.com/user-attachments/assets/c7e8e343-ec4c-4202-b4ba-ef1cf04cedaa)
@@ -444,37 +449,33 @@ docker compose logs -fn 100
 There are many factors to be optimized to win in provers competetion where you can read the official guide for [broker](https://docs.beboundless.xyz/provers/broker) or [prover](https://docs.beboundless.xyz/provers/performance-optimization)
 
 ## Boost pre-flight execution
-* `exec_agent` services in `compose.yml` is doing the preflight execution of orders to estimate if prover can bid on them or not.
-* They are important in preflighting orders concurrently and locking them faster to compete with other provers.
-  * More `exec_agent` will preflight more orders concurrently.
-  * More CPU/RAM in a single `exec_agent` will preflight orders faster.
-* Increasing it from default value: `2` depends on how many concurrent preflight execution you want to allow.
-* We have two services related to exec agents: `x-exec-agent-common` and `exec_agent`
-  * `x-exec-agent-common`: covers the main settings of all `exec_agent` services including CPU and Memory sepecified to each
-  * `exec_agentX`: They are the agents themselves that you can addup for more concurrent preflight execution. `X` is the number of the agents you want to specify. To add more, you increase `X` by `+1`
+### What is Pre-Flight Execution?
+Pre-flight execution is a step where the system simulates processing an **order** to assess whether the prover can successfully handle it. This check allows the prover to decide if it should **bid on the order**, enabling faster and more competitive order locking compared to other provers.
 
-Example of `x-exec-agent-common` in your `compose.yml`:
-```yml
-x-exec-agent-common: &exec-agent-common
-  <<: *agent-common
-  mem_limit: 4G
-  cpus: 2
-  environment:
-    <<: *base-environment
-    RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
-  entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
-```
-* You can increase `cpus` and `mem_limit`
+### Role of `exec_agent` Services
+In your `compose.yml` file, the `exec_agent` services handle these pre-flight executions. Running multiple `exec_agent` services lets you process several orders at once, improving your ability to quickly evaluate and secure profitable orders.
 
-Example of `exec_agent` in your `compose.yml`:
+* Key Benefit: More `exec_agent` services mean more concurrent pre-flight executions.
+* Default Setting: The default configuration includes 2 `exec_agent` services.
+* Scaling Up: Increase number of `exec_agent` for more simultaneous executions.
+* Note: Match agent count to CPU/memory capacity.
+
+### To add more `exec_agent`
+**Edit `compose.yml`**
+* Add agents:
 ```yaml
-  exec_agent0:
-    <<: *exec-agent-common
-
-  exec_agent1:
-    <<: *exec-agent-common
+exec_agent2:
+  <<: *exec-agent-common
 ```
-* To increase agents, addup more lines of these and increase their number by `+1`
+* Increase numbering (e.g., exec_agent3).
+
+**Update `x-broker-common`:**
+* Include new agents in `depends_on` to link agents to broker:
+```yaml
+depends_on:
+  - exec_agent2
+```
+
 
 ## Boost Proving GPUs
 * `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
@@ -501,8 +502,8 @@ Example of `exec_agent` in your `compose.yml`:
 ## Benchmarking Bento
 Install psql:
 ```bash
-apt update
-apt install postgresql-client
+sudo apt update
+sudo apt install postgresql-client
 psql --version
 ```
 
@@ -530,7 +531,7 @@ RUST_LOG=info bento_cli -c <ITERATION_COUNT>
 
 * Check `khz` &  `cycles` proved in the harness test
 ```
-bash scripts/job_status.sh JOB_ID
+sudo ./scripts/job_status.sh JOB_ID
 ```
 * replace `JOB_ID` with the one prompted to you when running a test.
 * Now you get the `hz` which has to be devided by 1000x to be in `khz` and the `cycles` it proved.
