@@ -285,11 +285,10 @@ The default `compose.yml` file defines all services within Prover.
   nano compose.yml
   ```
 * The current `compose.yml` is set for `1` GPU by default, you can bypass editing it if you only have one GPU.
-* In single GPUs, you can increase the RAM & CPU of the `x-exec-agent-common` and `gpu_prove_agent0` services in `compose.yml` instead to maximize the utilization of your system
 
 ### Multiple GPUs
 * 4 GPUs:
-To add more GPUs or modify CPU and RAM sepcified to each GPU, replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) with 4 custom GPUs
+To add more GPUs or modify CPU and RAM sepcified to each GPU, replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) that is using 4 custom GPUs
 
 * More/Less than 4 GPUs:
 Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/blob/main/add-remove-gpu.md) to add or remove the number of 4 GPUs in my custom `compose.yml` file
@@ -297,7 +296,7 @@ Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/bl
 ---
 
 ## Configure Segment Size
-Larger segment size caused more proving (bento) performance, but require more GPU VRAM. To pick the right `SEGMENT_SIZE` for your GPU VRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
+Larger segment size causes more proving (bento) performance, but require more GPU vRAM. To pick the right `SEGMENT_SIZE` for your GPU VRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
 
 ![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
 
