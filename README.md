@@ -177,7 +177,9 @@ For a quick set up of Boundless dependencies on Ubuntu 22.04 LTS, you can run:
 ```bash
 sudo ./scripts/setup.sh
 ```
-However, we need to install some dependecies manually:
+* It may take time to install due to installing Nvidia GPU drivers
+
+However, you can install some dependecies manually:
 
 ```console
 \\ Execute command lines one by one
@@ -323,9 +325,9 @@ The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRA
   ```
   > `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 by default, unless `SEGMENT_SIZE` variable is defined in the container’s `environment`.
 
-**Two other options to Configure `SEGMENT_SIZE`**
-* You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env` files like `.env.base-sepolia`,`.env.broker`, etc. if you are using them.
-* While it's not recommended, you simply can replace `${SEGMENT_SIZE:-21}` in `compose.yml` with the number itself like `entrypoint: /app/agent -t exec --segment-po2 21`
+**Two alternative methods to configure `SEGMENT_SIZE`**
+* Add `SEGMENT_SIZE=21` variable to the preserved network `.env` files like `.env.base`,`.env.broker`, etc. in case want to use them.
+* Replace `${SEGMENT_SIZE:-21}` in `compose.yml` with the value itself like `entrypoint: /app/agent -t exec --segment-po2 21`
 
 ---
 
