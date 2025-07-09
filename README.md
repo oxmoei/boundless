@@ -296,19 +296,20 @@ Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/bl
 ---
 
 ## Configure Segment Size
-Larger segment size causes more proving (bento) performance, but require more GPU vRAM. To pick the right `SEGMENT_SIZE` for your GPU VRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
+Larger segment size causes more proving (bento) performance, but require more GPU vRAM. To pick the right `SEGMENT_SIZE` value for your GPU vRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
 
 ![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
 
-* Note, when you set a number for `SEGMENT_SIZE`, it sets that number for each GPU identically.
-* The default value of `SEGMENT_SIZE` is `21`, if you have a 24GB vRAM GPU, skip this step
+* Note, when you set a value for `SEGMENT_SIZE`, it sets that value for each GPU identically.
 
 ### Setting SEGMENT_SIZE
+The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRAM GPUs. If you have a `>20GB` vRAM GPU, skip this step.
+
 **Configure `SEGMENT_SIZE` in `compose.yml`**
 
 * `SEGMENT_SIZE` in `compose.yml` under the `x-exec-agent-common` service is `21`by default.
-  * You can change the value of `SEGMENT_SIZE` directly in `compose.yml` by adding `SEGMENT_SIZE: 21` in `environment` section of `x-exec-agent-common`
-  * Your `x-exec-agent-common` will be like this:
+  * You can change the value of `SEGMENT_SIZE` directly in `compose.yml` by adding `SEGMENT_SIZE: 21` in `environment` section of `x-exec-agent-common` container.
+  * Your modified `x-exec-agent-common` container will be like this:
   ```yaml
   x-exec-agent-common: &exec-agent-common
   <<: *agent-common
@@ -317,10 +318,10 @@ Larger segment size causes more proving (bento) performance, but require more GP
   environment:
     <<: *base-environment
     RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
-    SEGMENT_SIZE: 19
+    SEGMENT_SIZE: 21
   entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
   ```
-  > `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 unless `SEGMENT_SIZE` is defined in the container’s `environment`.
+  > `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 by default, unless `SEGMENT_SIZE` variable is defined in the container’s `environment`.
 
 **Two other options to Configure `SEGMENT_SIZE`**
 * You can add `SEGMENT_SIZE` variable with its value to the preserved network `.env` files like `.env.base-sepolia`,`.env.broker`, etc. if you are using them.
