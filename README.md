@@ -153,15 +153,15 @@ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 ### Install & Update Packages
 ```bash
-apt update && apt upgrade -y
-apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build -y
+sudo apt update && sudo apt upgrade -y
+sudo apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build -y
 ```
 
 ### Clone Boundless Repo
 ```bash
 git clone https://github.com/boundless-xyz/boundless
 cd boundless
-git checkout release-0.11
+git checkout release-0.12
 ```
 
 ### Install Dependecies
@@ -175,7 +175,7 @@ To run a Boundless prover, you'll need the following dependencies:
 
 For a quick set up of Boundless dependencies on Ubuntu 22.04 LTS, you can run:
 ```bash
-bash ./scripts/setup.sh
+sudo ./scripts/setup.sh
 ```
 However, we need to install some dependecies manually:
 
