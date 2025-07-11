@@ -305,7 +305,8 @@ Larger segment size causes more proving (bento) performance, but require more GP
 * Note, when you set a value for `SEGMENT_SIZE`, it sets that value for each GPU identically.
 
 ### Setting SEGMENT_SIZE
-The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRAM GPUs. If you have a `>20GB` vRAM GPU, skip this step.
+The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRAM GPUs
+* **If you have a `>20GB` vRAM GPU, skip this step.**
 
 **Configure `SEGMENT_SIZE` in `compose.yml`**
 
