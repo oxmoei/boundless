@@ -446,15 +446,76 @@ docker compose logs -fn 100 broker
 
 ---
 
-# Bento (Prover) & Broker Optimizations
+#  Broker & Bento (Prover) Optimizations
 There are many factors to be optimized to win in provers competetion where you can read the official guide for [broker](https://docs.beboundless.xyz/provers/broker) or [prover](https://docs.beboundless.xyz/provers/performance-optimization)
 
-## Boost pre-flight execution
+## Broker Optimization
+* Broker is one of the containers of the prover, it's not proving itself, it's for onchain activities, and initializing with orders like locking orders or setting amount of stake bids, etc.
+* `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
+
+Copy the template to the main config file:
+```bash
+cp broker-template.toml broker.toml
+```
+
+Edit broker.toml file:
+```bash
+nano broker.toml
+```
+* You can see an example of the official `broker.toml` [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
+
+### Increasing Lock-in Rate
+Once your broker is running, before the gpu-based prover gets into work, broker must compete with other provers to lock-in the orders. Here is how to optimize broker to lock-in faster than other provers:
+
+1. Decreasing the `mcycle_price` would tune your Broker to `bid` at lower prices for proofs.
+* Once an order detected, the broker runs a preflight execution to estimate how many `cycles` the request needs. As you see in the image, a prover proved orders with millions or thousands of cycles.
+* `mcycle_price` is actually price of a prover for proving each 1 million cycles. Final price = `mcycle_price` x `cycles`
+* The less you set `mcycle_price`, the higher chance you outpace other provers.
+
+![image](https://github.com/user-attachments/assets/fab9cc79-362f-4a43-a461-258ffe0bfc1a)
+
+
+* To get idea of what `mcycle_price` are other provers using, find an order in [explorer](https://explorer.beboundless.xyz/orders/0xc2db89b2bd434ceac6c74fbc0b2ad3a280e66db024d22ad3) with your prefered network, go to details page of the order and look for `ETH per Megacycle`
+
+![image](https://github.com/user-attachments/assets/6dd0c012-bff7-4a98-97ae-3cdfb288bc43)
+
+
+2. Increasing `lockin_priority_gas` to consume more gas to outrun other bidders. You might need to first remove `#` to uncomment it's line, then set the gas. It's based on Gwei.
+
+### Other settings in `broker.toml`
+Read more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
+* `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
+  * You can set the `peak_prove_khz` by following the previous step [(Benchmarking Bento)](https://github.com/0xmoei/boundless/tree/main#benchmarking-bento)
+ 
+* `max_mcycle_limit`: Maximum cycles ( mcycle= million cycles) of an order to be accepted
+  * Orders with cycles more than the set parameter will be spikked after preflight
+  * By default, it's set as `8000` mcycles (8 billion cycles)
+  * Provers with limited resources should reduce this number as not to use execution resources on jobs they are unlikely to be able to fulfill. Provers with more resources may consider keeping this value. New mainnet proofs, at around 60B cycles, will exceed most reasonable caps.
+ 
+* `min_deadline`: Min seconds left before the deadline of the order to consider bidding on a request or not.
+  * Requesters set a deadline for their order, if a prover can't prove during this, it gets slashed.
+  * By setting the min deadline, your prover won't accept requests with a deadline less than that.
+  * As in the following image of an order in [explorer](https://explorer.beboundless.xyz/), the order fullfilled after the deadline and prover got slashed because of the delay in delivering
+ 
+ ![image](https://github.com/user-attachments/assets/bc497b61-01fe-451a-aeb1-de35efca56af)
+
+* `max_concurrent_proofs`: Maximum number of orders the can lock. Increasing it, increase the ability to lock more orders, but if you prover cannot prove them in the specified deadline, your stake assets will get slashed.
+  * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
+  * It's set as `2` by default, and really depends on your GPU and your configuration, you have to test it out if you want to inscrease it.
+
+* `max_concurrent_preflights`: Maximum number of orders to concurrently work on pricing (preflight execution)
+  * Set it to at most `n - 1`, where `n` is the *number of execution agents*. This ensures you will have execution capacity reserved by proving.
+  * To increase the *number of execution agents*, procees to step [Boost preflight execution](#boost-preflight-execution)
+
+---
+
+## Boost preflight execution
 ### What is Pre-Flight Execution?
-Pre-flight execution is a step where the system simulates processing an **order** to assess whether the prover can successfully handle it. This check allows the prover to decide if it should **bid on the order**, enabling faster and more competitive order locking compared to other provers.
+Pre-flight execution is where *Agents* start pricing and estimating the gas cost of an *order* to see if the prover should *lock* it.
+* These agents are **CPU-based**, and their performance depends on single-threaded CPU power.
 
 ### Role of `exec_agent` Services
-In your `compose.yml` file, the `exec_agent` services handle these pre-flight executions. Running multiple `exec_agent` services lets you process several orders at once, improving your ability to quickly evaluate and secure profitable orders.
+In your `compose.yml` file, the `exec_agent` services handle these pre-flight executions. Running multiple `exec_agent` services lets you process several orders at once, speed up you to evaluate and lock more orders.
 
 * Key Benefit: More `exec_agent` services mean more concurrent pre-flight executions.
 * Default Setting: The default configuration includes 2 `exec_agent` services.
@@ -486,9 +547,20 @@ depends_on:
   - exec_agent2
 ```
 
+**3. Increase the number of `max_concurrent_preflights` in `broker.toml` based on the numbers of your agents
+* Set it to at most `n - 1`, where `n` is the *number of execution agents*. This ensures you will have execution capacity reserved by proving.
+
+Note:
 * There is also a `x-exec-agent-common` service in `compose.yml` controling the main settings of all Agents like CPU and memory.
 * Default CPU/Memory specified for each agent is enough, however you can increase them.
 
+
+---
+
+## Bento Optimizations:
+
+## Segment Size
+The most important factor in optimizing `Bento` and speeding up generating proofs is **Segment Size**. Ensure you followed step [Configure Segment Size](#configure-segment-size) to pick a right Segment Size based on your GPUs.
 
 ## Boost Proving GPUs
 * `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
@@ -511,6 +583,8 @@ depends_on:
                  capabilities: [gpu]
    ```
 * While the default CPU/RAM for each GPU is enough, for single GPUs, you can increase them to increase efiiciency, but don't maximize and always keep some CPU/RAML for other jobs.
+
+---
 
 ## Benchmarking Bento
 Install psql:
@@ -550,57 +624,6 @@ sudo ./scripts/job_status.sh JOB_ID
 * Now you get the `hz` which has to be devided by 1000x to be in `khz` and the `cycles` it proved.
 * If got error `not_found`, it's cuz you didn't create `.env.broker` and the script is using the `SEGMENT_SIZE` value in `.env.broker` to query your Segment size, do `cp .env.broker-template .env.broker` to fix.
 
----
-
-## Broker Optimization
-
-* Broker is one of the containers of the prover, it's not proving itself, it's for onchain activities, and initializing with orders like locking orders or setting amount of stake bids, etc.
-* `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
-
-Copy the template to the main config file:
-```bash
-cp broker-template.toml broker.toml
-```
-
-Edit broker.toml file:
-```bash
-nano broker.toml
-```
-* You can see an example of the official `broker.toml` [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
-
-### Increasing Lock-in Rate
-Once your broker is running, before the gpu-based prover gets into work, broker must compete with other provers to lock-in the orders. Here is how to optimize broker to lock-in faster than other provers:
-
-1. Decreasing the `mcycle_price` would tune your Broker to `bid` at lower prices for proofs.
-* Once an order detected, the broker runs a preflight execution to estimate how many `cycles` the request needs. As you see in the image, a prover proved orders with millions or thousands of cycles.
-* `mcycle_price` is actually price of a prover for proving each 1 million cycles. Final price = `mcycle_price` x `cycles`
-* The less you set `mcycle_price`, the higher chance you outpace other provers.
-
-![image](https://github.com/user-attachments/assets/fab9cc79-362f-4a43-a461-258ffe0bfc1a)
-
-
-* To get idea of what `mcycle_price` are other provers using, find an order in [explorer](https://explorer.beboundless.xyz/orders/0xc2db89b2bd434ceac6c74fbc0b2ad3a280e66db024d22ad3) with your prefered network, go to details page of the order and look for `ETH per Megacycle`
-
-![image](https://github.com/user-attachments/assets/6dd0c012-bff7-4a98-97ae-3cdfb288bc43)
-
-
-2. Increasing `lockin_priority_gas` to consume more gas to outrun other bidders. You might need to first remove `#` to uncomment it's line, then set the gas. It's based on Gwei.
-
-### Other settings in `broker.toml`
-Read more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
-* `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
-  * You can set the `peak_prove_khz` by following the previous step [(Benchmarking Bento)](https://github.com/0xmoei/boundless/tree/main#benchmarking-bento)
-
-* `max_concurrent_proofs`: Maximum number of orders the can lock. Increasing it, increase the ability to lock more orders, but if you prover cannot prove them in the specified deadline, your stake assets will get slashed.
-  * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
-  * It's set as `2` by default, and really depends on your GPU and your configuration, you have to test it out if you want to inscrease it.
-
-* `min_deadline`: Min seconds left before the deadline of the order to consider bidding on a request or not.
-  * Requesters set a deadline for their order, if a prover can't prove during this, it gets slashed.
-  * By setting the min deadline, your prover won't accept requests with a deadline less than that.
-  * As in the following image of an order in [explorer](https://explorer.beboundless.xyz/), the order fullfilled after the deadline and prover got slashed because of the delay in delivering
- 
- ![image](https://github.com/user-attachments/assets/bc497b61-01fe-451a-aeb1-de35efca56af)
 
 ---
 
