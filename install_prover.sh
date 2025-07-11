@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --allow-root        Allow running as root without prompting"
             echo "  --force-reclone     Automatically delete and re-clone the directory if it exists"
-            echo "  --start-immediately Automatically run the management script"
+            echo "  --start-immediately Automatically start the prover after installation"
             echo "  --help              Show this help message"
             exit 0
             ;;
@@ -169,8 +169,7 @@ check_os() {
             exit $EXIT_OS_CHECK_FAILED
         elif [[ "${VERSION_ID,,}" != "22.04" && "${VERSION_ID,,}" != "20.04" ]]; then
             warning "Tested on Ubuntu 20.04/22.04. Your version: $VERSION_ID"
-            prompt "Continue anyway? (y/N): "
-            read -r response
+            read -e -p "Continue anyway? (y/N): " response
             if [[ ! "$response" =~ ^[yY]$ ]]; then
                 exit $EXIT_USER_ABORT
             fi
@@ -225,7 +224,7 @@ install_basic_deps() {
         automake autoconf tmux htop nvme-cli libgbm1 pkg-config
         libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev
         libclang-dev ninja-build nvtop ubuntu-drivers-common
-        gnupg ca-certificates lsb-release postgresql-client
+        gnupg ca-certificates lsb-release postgresql postgresql-client
     )
     info "Installing basic dependencies..."
     if ! check_dpkg_status; then
@@ -474,7 +473,8 @@ install_rust_deps() {
 
     # Install bento-client with the RISC Zero toolchain
     info "Installing bento-client..."
-    RUSTUP_TOOLCHAIN=$TOOLCHAIN cargo install --git https://github.com/risc0/risc0 bento-client --bin bento_cli >> "$LOG_FILE" 2>&1 || {
+    RUSTUP_TOOLCHAIN=$TOOLCHAIN cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
+ >> "$LOG_FILE" 2>&1 || {
         error "Failed to install bento-client"
         exit $EXIT_DEPENDENCY_FAILED
     }
@@ -510,13 +510,12 @@ clone_repository() {
             rm -rf "$INSTALL_DIR"
         else
             warning "Boundless directory already exists at $INSTALL_DIR"
-            prompt "Delete and re-clone? (y/N): "
-            read -r response
+            read -e -p "Delete and re-clone? (y/N): " response
             if [[ "$response" =~ ^[yY]$ ]]; then
                 rm -rf "$INSTALL_DIR"
             else
                 cd "$INSTALL_DIR"
-                if ! git pull origin release-0.12 2>&1 >> "$LOG_FILE"; then
+                if ! git pull origin release-0.10 2>&1 >> "$LOG_FILE"; then
                     error "Failed to update repository"
                     exit $EXIT_DEPENDENCY_FAILED
                 fi
@@ -530,8 +529,8 @@ clone_repository() {
             exit $EXIT_DEPENDENCY_FAILED
         fi
         cd "$INSTALL_DIR"
-        if ! git checkout release-0.12 2>&1; then
-            error "Failed to checkout release-0.12"
+        if ! git checkout release-0.10 2>&1; then
+            error "Failed to checkout release-0.10"
             exit $EXIT_DEPENDENCY_FAILED
         fi
         if ! git submodule update --init --recursive 2>&1; then
@@ -651,7 +650,6 @@ services:
   minio:
     hostname: ${MINIO_HOST:-minio}
     image: ${MINIO_IMG:-minio/minio:RELEASE.2024-05-28T17-19-04Z}
-    restart: always
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -800,8 +798,7 @@ configure_network() {
     echo "1) Base Mainnet"
     echo "2) Base Sepolia (Testnet)"
     echo "3) Ethereum Sepolia (Testnet)"
-    prompt "Select network (1-3): "
-    read -r network_choice
+    read -e -p "Select network (1-3): " network_choice
     case $network_choice in
         1) NETWORK="base" ;;
         2) NETWORK="base-sepolia" ;;
@@ -815,18 +812,16 @@ configure_network() {
     info "Selected: $NETWORK_NAME"
     echo -e "\n${BOLD}RPC Configuration:${RESET}"
     echo "RPC must support eth_newBlockFilter. Recommended providers:"
-    echo "- Alchemy (set lookback_block=<120)"
     echo "- BlockPi (free for Base networks)"
+    echo "- Alchemy"
     echo "- Chainstack (set lookback_blocks=0)"
-    echo "- Your own node RPC"
-    prompt "Enter RPC URL: "
-    read -r RPC_URL
+    echo "- Your own node"
+    read -e -p "Enter RPC URL: " RPC_URL
     if [[ -z "$RPC_URL" ]]; then
         error "RPC URL cannot be empty"
         exit $EXIT_NETWORK_ERROR
     fi
-    prompt "Enter your wallet private key (without 0x prefix): "
-    read -rs PRIVATE_KEY
+    read -e -p "Enter your wallet private key (without 0x prefix): " PRIVATE_KEY
     echo
     if [[ -z "$PRIVATE_KEY" ]]; then
         error "Private key cannot be empty"
@@ -902,34 +897,28 @@ configure_broker() {
     echo "Configure key parameters (press Enter to keep defaults):"
     echo -e "\n${CYAN}mcycle_price${RESET}: Price per million cycles in native token"
     echo "Lower = more competitive, but less profit"
-    prompt "mcycle_price [default: 0.0000005]: "
-    read -r mcycle_price
+    read -e -p "mcycle_price [default: 0.0000005]: " mcycle_price
     mcycle_price=${mcycle_price:-0.0000005}
     echo -e "\n${CYAN}peak_prove_khz${RESET}: Maximum proving speed in kHz"
     echo "Later, Benchmark GPUs via managemet script, then set this based on the result"
-    prompt "peak_prove_khz [default: 100]: "
-    read -r peak_prove_khz
+    read -e -p "peak_prove_khz [default: 100]: " peak_prove_khz
     peak_prove_khz=${peak_prove_khz:-100}
     echo -e "\n${CYAN}max_mcycle_limit${RESET}: Maximum cycles to accept (in millions)"
     echo "Higher = accept larger proofs"
-    prompt "max_mcycle_limit [default: 8000]: "
-    read -r max_mcycle_limit
+    read -e -p "max_mcycle_limit [default: 8000]: " max_mcycle_limit
     max_mcycle_limit=${max_mcycle_limit:-8000}
     echo -e "\n${CYAN}min_deadline${RESET}: Minimum seconds before deadline"
     echo "Higher = safer, but may miss orders with a deadline lower than min. value you set"
-    prompt "min_deadline [default: 300]: "
-    read -r min_deadline
+    read -e -p "min_deadline [default: 300]: " min_deadline
     min_deadline=${min_deadline:-300}
     echo -e "\n${CYAN}max_concurrent_proofs${RESET}: Maximum parallel proofs"
     echo "Higher = more throughput, but risk of missing deadlines"
-    prompt "max_concurrent_proofs [default: 2]: "
-    read -r max_concurrent_proofs
+    read -e -p "max_concurrent_proofs [default: 2]: " max_concurrent_proofs
     max_concurrent_proofs=${max_concurrent_proofs:-2}
     echo -e "\n${CYAN}lockin_priority_gas${RESET}: Extra gas for lock transactions (Gwei)"
     echo "Important metric to win other provers in bidding orders"
     echo "Higher = better chance of winning bids"
-    prompt "lockin_priority_gas [default: 0]: "
-    read -r lockin_priority_gas
+    read -e -p "lockin_priority_gas [default: 0]: " lockin_priority_gas
     sed -i "s/mcycle_price = \"[^\"]*\"/mcycle_price = \"$mcycle_price\"/" "$BROKER_CONFIG"
     sed -i "s/peak_prove_khz = [0-9]*/peak_prove_khz = $peak_prove_khz/" "$BROKER_CONFIG"
     sed -i "s/max_mcycle_limit = [0-9]*/max_mcycle_limit = $max_mcycle_limit/" "$BROKER_CONFIG"
@@ -1296,6 +1285,9 @@ view_broker_logs() {
         # Analyze errors
         echo -e "\n${GRAY}────────────────────────────────────────${RESET}"
         analyze_broker_errors
+        # Wait for user input before returning to menu
+        echo -e "\nPress any key to return to menu..."
+        read -n 1
     fi
 }
 
@@ -1318,6 +1310,9 @@ view_broker_logs_tail() {
         # Analyze errors
         echo -e "\n${GRAY}────────────────────────────────────────${RESET}"
         analyze_broker_errors
+        # Wait for user input before returning to menu
+        echo -e "\nPress any key to return to menu..."
+        read -n 1
     fi
 }
 
@@ -1449,7 +1444,7 @@ change_network() {
         echo "- Alchemy"
         echo "- Chainstack (set lookback_blocks=0)"
         echo "- Your own node"
-        read -p "Enter RPC URL: " new_rpc
+        read -e -p "Enter RPC URL: " new_rpc
 
         if [[ -n "$new_rpc" ]]; then
             # Update RPC URL in both files
@@ -1470,7 +1465,7 @@ change_private_key() {
     echo -e "${GRAY}──────────────────${RESET}"
     echo -e "${RED}WARNING: This will update your private key in all network files.${RESET}"
     echo
-    read -sp "Enter new private key (without 0x prefix): " new_key
+    read -e -p "Enter new private key (without 0x prefix): " new_key
     echo
 
     if [[ -z "$new_key" ]]; then
@@ -1513,7 +1508,7 @@ deposit_stake() {
     source .env.broker
     echo -e "${BOLD}${PURPLE}Deposit USDC Stake${RESET}"
     echo -e "${GRAY}──────────────────${RESET}"
-    read -p "Enter stake amount in USDC: " amount
+    read -e -p "Enter stake amount in USDC: " amount
     if [[ -n "$amount" ]]; then
         boundless account deposit-stake "$amount"
         echo -e "\nPress any key to continue..."
@@ -1536,8 +1531,12 @@ run_benchmark_orders() {
     source .env.broker
     echo -e "${BOLD}${ORANGE}Benchmark with Order IDs${RESET}"
     echo -e "${GRAY}──────────────────${RESET}"
-    echo "Enter order IDs from https://explorer.beboundless.xyz/orders"
-    read -p "Order IDs (comma-separated): " ids
+    echo -e "${BOLD}${GREEN}Ensure Broker (or at least Bento) is running${RESET}"
+    echo -e "${GRAY}──────────────────${RESET}"
+    echo "Find Mainnet order IDs from https://explorer.beboundless.xyz/orders"
+    echo "And Testnet order IDs from https://explorer.testnet.beboundless.xyz/orders"
+    echo -e "${GRAY}──────────────────${RESET}"
+    read -e -p "Off-chain Order IDs (comma-separated): " ids
     if [[ -n "$ids" ]]; then
         boundless proving benchmark --request-ids "$ids"
         echo -e "\nPress any key to continue..."
@@ -1697,7 +1696,7 @@ EOF
 
 # Main installation flow
 main() {
-    echo -e "${BOLD}${CYAN}Boundless Prover Node Setup by 0xMoei${RESET}"
+    echo -e "${BOLD}${CYAN}Boundless Prover Node Setup${RESET}"
     echo "========================================"
     mkdir -p "$(dirname "$LOG_FILE")"
     touch "$LOG_FILE"
@@ -1705,16 +1704,15 @@ main() {
     echo "[START] Installation started at $(date)" >> "$LOG_FILE"
     echo "[START] Installation started at $(date)" >> "$ERROR_LOG"
     info "Logs will be saved to:"
-    info "  - Full log: cat $LOG_FILE"
-    info "  - Error log: cat $ERROR_LOG"
+    info "  - Full log: $LOG_FILE"
+    info "  - Error log: $ERROR_LOG"
     echo
     if [[ $EUID -eq 0 ]]; then
         if [[ "$ALLOW_ROOT" == "true" ]]; then
             warning "Running as root (allowed via --allow-root)"
         else
             warning "Running as root user"
-            prompt "Continue? (y/N): "
-            read -r response
+            read -e -p "Continue? (y/N): " response
             if [[ ! "$response" =~ ^[yY]$ ]]; then
                 exit $EXIT_USER_ABORT
             fi
@@ -1727,12 +1725,12 @@ main() {
     update_system
     info "Installing all dependencies..."
     install_basic_deps
-    # install_gpu_drivers
+    install_gpu_drivers
     install_docker
     install_nvidia_toolkit
     install_rust
     install_just
-    # install_cuda
+    install_cuda
     install_rust_deps
     clone_repository
     detect_gpus
@@ -1761,8 +1759,7 @@ main() {
         cd "$INSTALL_DIR"
         ./prover.sh
     else
-        prompt "Go to management script now? (y/N): "
-        read -r start_now
+        read -e -p "Start prover now? (y/N): " start_now
         if [[ "$start_now" =~ ^[yY]$ ]]; then
             cd "$INSTALL_DIR"
             ./prover.sh
