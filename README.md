@@ -479,7 +479,7 @@ exec_agent2:
 ```
 * You can increase numbering (e.g., exec_agent3) to add even more agents.
 
-**2. Update `x-broker-common`:**
+**2. Update `x-broker-common` service in `compose.yml`:**
 * Include new agents in `depends_on` to link agents to broker:
 ```yaml
 depends_on:
