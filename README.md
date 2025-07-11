@@ -503,10 +503,22 @@ Read more about them in [official doc](https://docs.beboundless.xyz/provers/brok
   * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
   * It's set as `2` by default, and really depends on your GPU and your configuration, you have to test it out if you want to inscrease it.
 
-* `max_concurrent_preflights`: Maximum number of orders to concurrently work on pricing (preflight execution)
+* `max_concurrent_preflights`: **To enable it, make sure to remove `#` behind it**
+  * Maximum number of orders to concurrently work on pricing (preflight execution)
   * Set it to at most `n - 1`, where `n` is the *number of execution agents*. This ensures you will have execution capacity reserved by proving.
   * To increase the *number of execution agents*, procees to step [Boost preflight execution](#boost-preflight-execution)
+ 
+* `order_pricing_priority`: **To enable it, make sure to remove `#` behind it**
+  *  Determines how orders are prioritized for pricing (preflight)
+  *  "random": Process orders in random order
+  *  "observation_time": Process orders in the fastest way (as soon as broker sees them)
+  *  "shortest_expiry": Process orders by shortest expiry first (earliser deadline)
 
+* `order_commitment_priority`: **To enable it, make sure to remove `#` behind it**
+  * Determines how orders are prioritized when committing to prove them (It's for when you may locked two orders concurrently and want to choose which one to prove first)
+  * "random": Process orders in random order
+  * "shortest_expiry": Process orders by shortest expiry first
+ 
 ---
 
 ## Boost preflight execution
