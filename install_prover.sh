@@ -224,7 +224,7 @@ install_basic_deps() {
         automake autoconf tmux htop nvme-cli libgbm1 pkg-config
         libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev
         libclang-dev ninja-build nvtop ubuntu-drivers-common
-        gnupg ca-certificates lsb-release postgresql postgresql-client
+        gnupg ca-certificates lsb-release postgresql-client
     )
     info "Installing basic dependencies..."
     if ! check_dpkg_status; then
@@ -584,10 +584,6 @@ detect_gpus() {
 # Configure compose.yml for multiple GPUs
 configure_compose() {
     info "Configuring compose.yml for $GPU_COUNT GPU(s)..."
-    if [[ $GPU_COUNT -eq 1 ]]; then
-        info "Single GPU detected, using default compose.yml"
-        return
-    fi
     cat > "$COMPOSE_FILE" << 'EOF'
 name: bento
 # Anchors:
@@ -621,6 +617,46 @@ x-exec-agent-common: &exec-agent-common
     RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
   entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
 
+x-broker-environment: &broker-environment
+  RUST_LOG: ${RUST_LOG:-info,broker=debug,boundless_market=debug}
+  # RUST_BACKTRACE: 1
+  PRIVATE_KEY: ${PRIVATE_KEY}
+  RPC_URL: ${RPC_URL}
+  BOUNDLESS_MARKET_ADDRESS:
+  SET_VERIFIER_ADDRESS:
+  ORDER_STREAM_URL:
+  # TODO these env vars are temporary for handling cancellations. These should be removed when
+  # updated.
+  POSTGRES_HOST:
+  POSTGRES_DB:
+  POSTGRES_PORT:
+  POSTGRES_USER:
+  POSTGRES_PASS:
+
+x-broker-common: &broker-common
+  restart: always
+  depends_on:
+    - rest_api
+EOF
+    for i in $(seq 0 $((GPU_COUNT - 1))); do
+        echo "    - gpu_prove_agent$i" >> "$COMPOSE_FILE"
+    done
+    cat >> "$COMPOSE_FILE" << 'EOF'
+    - exec_agent0
+    - exec_agent1
+    - aux_agent
+    - snark_agent
+    - redis
+    - postgres
+  profiles: [broker]
+  build:
+    context: .
+    dockerfile: dockerfiles/broker.dockerfile
+  mem_limit: 2G
+  cpus: 2
+  stop_grace_period: 3h
+  network_mode: host
+
 services:
   redis:
     hostname: ${REDIS_HOST:-redis}
@@ -650,6 +686,7 @@ services:
   minio:
     hostname: ${MINIO_HOST:-minio}
     image: ${MINIO_IMG:-minio/minio:RELEASE.2024-05-28T17-19-04Z}
+    restart: always
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -701,7 +738,6 @@ services:
     mem_limit: 256M
     cpus: 1
     entrypoint: /app/agent -t aux --monitor-requeue
-
 EOF
     for i in $(seq 0 $((GPU_COUNT - 1))); do
         cat >> "$COMPOSE_FILE" << EOF
@@ -717,7 +753,6 @@ EOF
             - driver: nvidia
               device_ids: ['$i']
               capabilities: [gpu]
-
 EOF
     done
     cat >> "$COMPOSE_FILE" << 'EOF'
@@ -742,44 +777,39 @@ EOF
     entrypoint: /app/rest_api --bind-addr 0.0.0.0:8081 --snark-timeout ${SNARK_TIMEOUT:-180}
 
   broker:
-    restart: always
-    depends_on:
-      - rest_api
-EOF
-    for i in $(seq 0 $((GPU_COUNT - 1))); do
-        echo "      - gpu_prove_agent$i" >> "$COMPOSE_FILE"
-    done
-    cat >> "$COMPOSE_FILE" << 'EOF'
-      - exec_agent0
-      - exec_agent1
-      - aux_agent
-      - snark_agent
-      - redis
-      - postgres
-    profiles: [broker]
-    build:
-      context: .
-      dockerfile: dockerfiles/broker.dockerfile
-    mem_limit: 2G
-    cpus: 2
-    stop_grace_period: 3h
+    <<: *broker-common
     volumes:
       - type: bind
         source: ./broker.toml
         target: /app/broker.toml
       - broker-data:/db/
-    network_mode: host
+      # Uncomment when using locally built set-builder and assessor guest programs
+      # - type: bind
+      #   source: ./target/riscv-guest/guest-set-builder/set-builder/riscv32im-risc0-zkvm-elf/release/set-builder.bin
+      #   target: /target/riscv-guest/guest-set-builder/set-builder/riscv32im-risc0-zkvm-elf/release/set-builder.bin
+      # - type: bind
+      #   source: ./target/riscv-guest/guest-assessor/assessor-guest/riscv32im-risc0-zkvm-elf/release/assessor-guest.bin
+      #   target: /target/riscv-guest/guest-assessor/assessor-guest/riscv32im-risc0-zkvm-elf/release/assessor-guest.bin
     environment:
-      RUST_LOG: ${RUST_LOG:-info,broker=debug,boundless_market=debug}
+      <<: *broker-environment
       PRIVATE_KEY: ${PRIVATE_KEY}
       RPC_URL: ${RPC_URL}
-      ORDER_STREAM_URL:
-      POSTGRES_HOST:
-      POSTGRES_DB:
-      POSTGRES_PORT:
-      POSTGRES_USER:
-      POSTGRES_PASS:
-    entrypoint: /app/broker --db-url 'sqlite:///db/broker.db' --set-verifier-address ${SET_VERIFIER_ADDRESS} --boundless-market-address ${BOUNDLESS_MARKET_ADDRESS} --config-file /app/broker.toml --bento-api-url http://localhost:8081
+    entrypoint: /app/broker --db-url 'sqlite:///db/broker.db' --config-file /app/broker.toml --bento-api-url http://localhost:8081
+
+  # # Example second broker with different configuration
+  # broker2:
+  #   <<: *broker-common
+  #   volumes:
+  #     - type: bind
+  #       source: ./broker2.toml
+  #       target: /app/broker.toml
+  #     - broker2-data:/db/
+  #   environment:
+  #     <<: *broker-environment
+  #     # Note: use a different variable if you want to use different private keys in each broker
+  #     PRIVATE_KEY: ${PRIVATE_KEY}
+  #     RPC_URL: ${RPC_URL_2}
+  #   entrypoint: /app/broker --db-url 'sqlite:///db/broker2.db' --config-file /app/broker.toml --bento-api-url http://localhost:8081
 
 volumes:
   redis-data:
@@ -787,6 +817,7 @@ volumes:
   minio-data:
   grafana-data:
   broker-data:
+  # broker2-data:
 EOF
     success "compose.yml configured for $GPU_COUNT GPU(s)"
 }
@@ -1759,7 +1790,7 @@ main() {
         cd "$INSTALL_DIR"
         ./prover.sh
     else
-        read -e -p "Start prover now? (y/N): " start_now
+        read -e -p "Go to management script now? (y/N): " start_now
         if [[ "$start_now" =~ ^[yY]$ ]]; then
             cd "$INSTALL_DIR"
             ./prover.sh
