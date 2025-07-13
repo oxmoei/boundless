@@ -414,7 +414,7 @@ source ~/.bashrc
 ```
 boundless account deposit-stake STAKE_AMOUNT
 ```
-* Make sure you've set `export RPC_URL=` & `export PRIVATE_KEY=` for your prefered network before executing the command.
+* Ensure you've set `export RPC_URL=` & `export PRIVATE_KEY=` for your prefered network before executing the command.
 
 **Stake Balance:**
 ```bash
@@ -612,7 +612,8 @@ boundless proving benchmark --request-ids <IDS>
 ```
 * You can use the order IDs listed [here](https://explorer.beboundless.xyz/orders)
 * You can add multiples by adding comma-seprated ones.
-* Recommended to pick a few requests of varying sizes and programs, biased towards larger proofs for a more representative benchmark.
+* Ensure you've set `export RPC_URL=` & `export PRIVATE_KEY=` for your prefered network before benchamrking an order ID.
+* For older orders, your RPC should support high block ranges (alchemy has low block range), so you can set a public RPC before benchmarking
 
 ![image](https://github.com/user-attachments/assets/04ca61f7-a658-4cb8-b09b-928bbe4694d4)
 
