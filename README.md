@@ -329,6 +329,14 @@ x-exec-agent-common: &exec-agent-common
 
 ---
 
+## Enable Memory overcommit
+```
+sudo sysctl -w vm.overcommit_memory=1
+```
+* This ensure your prover won't get panicked at high memory usage
+
+---
+
 ## Running Prover
 Boundless is comprised of two major components:
 * `Bento` is the local proving infrastructure. Bento will take the locked orders from `Broker`, prove them and return the result to `Broker`.
