@@ -1,644 +1,146 @@
 # Boundless Prover Guide
-The Boundless Prover Node is a computational proving system that participates in the Boundless decentralized proving market. Provers stake USDC, bid on computational tasks, generate zero-knowledge proofs using GPU acceleration, and earn rewards for successful proof generation.
+Boundless Prover node is a computational proof system participating in the Boundless decentralized proof market. Provers need to stake USDC, bid for computational tasks, use GPU acceleration to generate zero-knowledge proofs, and receive rewards upon successful proof generation.
 
-This guide covers both **automated** and **manual** installation methods for Ubuntu 20.04/22.04 systems.
+This guide covers the **automated** installation method on Ubuntu 20.04/22.04 systems.
 
 ## Table of Contents
+- [Official Video Tutorial](https://youtu.be/MZqU-J-fW2M)
 - [Boundless Prover Market](#boundless-prover-market)
 - [Notes](#notes)
-- [Requirements](#requirements)
-- [Rent GPU](#rent-gpu)
-- [Automated Setup](#automated-setup)
-- [Manual Setup](#manual-setup)
-  - [Dependencies](#dependencies)
-  - [System Hardware Check](#system-hardware-check)
-  - [Configure Prover](#configure-prover)
-  - [Running Prover](#running-prover)
-  - [Run Bento](#run-bento)
-  - [Configure Network](#configure-network)
-  - [Deposit Stake](#deposit-stake)
-  - [Run Broker](#run-broker)
-- [Bento (Prover) & Broker Optimizations](#bento-prover--broker-optimizations)
-  - [Segment Size (Prover)](#segment-size-prover)
-  - [Benchmarking Bento](#benchmarking-bento)
+- [Hardware and Software Requirements](#hardware-and-software-requirements)
+- [Automated Installation](#automated-installation)
+- [Bento (Prover) and Broker Optimization](#bento-prover--broker-optimization)
+  - [Segment Size (Prover)](#segment-sizeprover)
+  - [Bento Benchmark](#bento-benchmark)
   - [Broker Optimization](#broker-optimization)
-  - [Multi Brokers](#multi-brokers)
-- [Safe Update or Stop Prover](#safe-update-or-stop-prover)
+  - [Multiple Brokers](#multiple-brokers)
+- [Safely Update or Stop Prover](#safely-update-or-stop-prover)
 - [Debugging](#debugging)
 
 ---
 
-## Boundless Prover market
-First, you need to know how **Boundless Prover market** actually works to realize what you are doing.
+## Boundless Prover Market
+First, you need to understand how the **Boundless Prover Market** actually works so you know what you are doing.
 
-1. **Request Submission**: Developers submit computational tasks as "orders" on Boundless, offering ETH/ERC-20 rewards
-2. **Prover Stakes USDC**: Provers must deposit `USDC` as stake before bidding on orders
-3. **Bidding Process**: Provers detect orders and submit competitive bids (`mcycle_price`)
-4. **Order Locking**: Winning provers lock orders using staked USDC, committing to prove within deadline
-5. **Proof Generation**: Provers compute and submit proofs using GPU acceleration
-6. **Rewards/Slashing**: Valid proofs earn rewards; invalid/late proofs result in stake slashing
+1. **Request Submission**: Developers submit computational tasks (orders) on Boundless and provide ETH/ERC-20 rewards
+2. **Prover Stakes USDC**: Provers must stake `USDC` before bidding on orders
+3. **Bidding Process**: Provers discover orders and submit competitive bids (`mcycle_price`)
+4. **Order Locking**: The winning prover uses the staked USDC to lock the order, committing to complete the proof before the deadline
+5. **Proof Generation**: Prover uses GPU acceleration to compute and submit the proof
+6. **Rewards/Penalties**: Valid proofs receive rewards; invalid/late proofs will result in forfeiture of the stake
 
 ---
 
 ## Notes
-- The prover is in beta phase, while I admit that my guide is really perfect, you may get some troubles in the process of running it, so you can wait until official incentivized testnet with more stable network and more updates to this guide, or start exprimenting now.
-- I advice to start with testnet networks due to loss of stake funds
-- I will update this github guide constantly, so you always have to check back here later and follow me on [X](https://x.com/0xMoei) for new updates.
+- The Prover is currently in the testing phase. Although I believe this guide is very comprehensive, you may still encounter some issues during operation. You can wait until the official incentivized testnet is more stable and the guide is updated before participating, or you can start trying now.
+- It is recommended to start with the testnet to avoid loss of staked funds.
+- I will continuously update this GitHub guide, so please check back regularly.
 
 ---
 
-## Requirements
+## Hardware and Software Requirements
 ### Hardware
-* CPU - 16 threads, reasonable single core boost performance (>3Ghz)
+* CPU - 16 threads, good single-core turbo performance (>3Ghz)
 * Memory - 32 GB
-* Disk - 100 GB NVME/SSD
+* Storage - 100 GB NVME/SSD
 * GPU
-  * Minimum: one 8GB vRAM GPU
-  * Recommended to be competetive: 10x GPU with min 8GB vRAM
-  * Recomended GPU models are 4090, 5090 and L4.
-> * You better test it out with single GPUs by lowering your configurations later by reading the further sections.
+  * Minimum: One GPU with 8GB VRAM
+  * Recommended: 10 GPUs with 8GB VRAM each
+  * Recommended GPU models: 4090, 5090, and L4.
+> * You can start testing with a single card and adjust later according to your setup. See details below.
 
-### Software
+### System
 * Supported: Ubuntu 20.04/22.04
-* No support: Ubuntu 24.04
-* If you are running on Windows os locally, install Ubuntu 22 WSL using this [Guide](https://github.com/0xmoei/Install-Linux-on-Windows)
+* Not supported: Ubuntu 24.04
+* If running locally on Windows, use this [guide](https://github.com/0xmoei/Install-Linux-on-Windows) to install Ubuntu 22 WSL
 
 ---
 
-## Rent GPU
+# Automated Installation
+For automated installation and Prover management, you can use this script to automatically handle all dependencies, configuration, installation, and Prover management.
 
-**Recommended GPU Providers**
-* **[Vast.ai](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)**: SSH-Key needed
-  * Rent **VM Ubuntu** [template](https://cloud.vast.ai/?ref_id=62897&creator_id=62897&name=Ubuntu%2022.04%20VM)
-  * Refer to this [Guide](https://github.com/0xmoei/Rent-and-Config-GPU) to generate SSH-Key, Rent GPU and connect to your Vast GPU
-
----
-
-# Automated Setup
-For an automated installation and prover management, you can use this script that handles all dependencies, configuration, setup, and prover management automatically.
-
-## Download and Run the Installer:
+## Download and Run the Installation Script:
 ```bash
-# Update packages
-apt update && apt upgrade -y
+# Clone the repository
+git clone https://github.com/oxmoei/boundless.git && cd boundless
 
-# download wget
-apt install wget
+# Run the installation script
+chmod +x install_prover.sh && sudo ./install_prover.sh
 ```
 
-```bash
-# Download the installation script
-wget https://raw.githubusercontent.com/0xmoei/boundless/main/install_prover.sh -O install_prover.sh
-
-# Make it executable
-chmod +x install_prover.sh
-
-# Run the installer
-./install_prover.sh
-```
-* Installation may take time since we are installing drivers and building big files, so no worries.
+* The installation process may take a while as it needs to install drivers and build large files. Please be patient.
 
 ### During Installation:
 * The script will automatically detect your GPU configuration
-* You'll be prompted for:
-  * Network selection (mainnet/testnet)
-  * RPC URL: Read [Get RPC](#get-rpc) for more details
+* You will be prompted to enter:
+  * Network selection (Mainnet/Testnet)
+  * RPC URL: See [Get RPC](#get-rpc)
   * Private key (input is hidden)
-  * Broker config parameters: Visit [Broker Optimization](#broker-optimization) to read parameters details
+  * Broker configuration parameters: See [Broker Optimization](#broker-optimization) for details
 
 
 ### Post-Installation Management Script:
-After installation, to Run or Configure your Prover, you have to navigate to the installation directory and run Management Script `prover.sh`:
+After installation, to run or configure the Prover, enter the installation directory and run the management script `prover.sh`:
 
 ```bash
 cd ~/boundless
 ./prover.sh
 ```
-The management script provides a menu with:
-- **Service Management**: Start/stop broker, view logs, health checks
-- **Configuration**: [Change network](#get-rpc), update private key, edit [broker config](#broker-optimization)
-- **Stake Management**: Deposit USDC stake, check balance
-- **Performance Testing**: Run benchmarks with order IDs
+The management script menu includes:
+- **Service Management**: Start/stop broker, view logs, health check
+- **Configuration Management**: [Switch network](#get-rpc), update private key, edit [broker configuration](#broker-optimization)
+- **Staking Management**: Stake USDC, check balance
+- **Performance Testing**: Run benchmark with order ID
 - **Monitoring**: Real-time GPU monitoring
 
 
-### Modify CPU/RAM of x-exec-agent-common & gpu-prove-agent
-The `prover.sh` script manages all broker configurations (.e.g `broker.toml`), but to optimize and add some RAM and CPU to your `compose.yml`, you can navigate to [x-exec-agent-common](#modify-cpu/ram-of-gpu_prove_agent) & [gpu-prove-agent sections](modify-cpu/ram-of-gpu_prove_agent)
-* Re-run your broker after doing configurations to `compose.yml`
-
-### Note
-Even if you setup using automated script, I recommend you to read **[Manual Setup](#manual-setup)** and **[Bento (Prover) & Broker Optimizations](#bento-prover--broker-optimizations)** sections to learn to optimize your prover.
+### Modify CPU/RAM for x-exec-agent-common & gpu-prove-agent
+The `prover.sh` script manages all broker configurations (such as `broker.toml`), but if you need to optimize and increase RAM and CPU for `compose.yml`, refer to the [x-exec-agent-common](#modify-gpu_prove_agent-cpu-ram) and [gpu-prove-agent](#modify-gpu_prove_agent-cpu-ram) sections.
+* After modifying `compose.yml`, restart the broker.
 
 ---
 
-# Manual Setup
-Here is the step by step guide to Install and run your Prover smoothly, but please pay attention to these notes:
-* Read every single word of this guide, if you really want to know what you are doing.
-* There is an [Prover+Broker Optimization](https://github.com/0xmoei/boundless/blob/main/README.md#bento-prover--broker-optimizations) section where you need to read after setting up prover.
+# Bento (Prover) and Broker Optimization
+There are many optimization factors to improve your winning rate in the prover competition. See the [official broker guide](https://docs.beboundless.xyz/provers/broker) or [prover guide](https://docs.beboundless.xyz/provers/performance-optimization) for details.
 
+## Improve Preflight Efficiency
+* The `exec_agent` service in `compose.yml` is responsible for preflight of orders to evaluate whether the prover can bid.
+* The more concurrent preflights, the faster you can lock orders and the more competitive you are.
+  * Increase the number of `exec_agent` to preflight more orders concurrently.
+  * Increasing CPU/RAM for a single `exec_agent` can improve preflight speed.
+* The default value is `2`, adjust as needed.
+* Related services: `x-exec-agent-common` and `exec_agent`
+  * `x-exec-agent-common`: Main settings for all `exec_agent` services, including CPU and memory
+  * `exec_agentX`: Specific agents, X is the number. To add more agents, just increment the number.
 
-## Dependecies
-### Delete Preserved Variables
-
-* Open `/etc/environment`:
-```bash
-sudo nano /etc/environment
-```
-Delete everything.
-
-* Add this code to it:
-```
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-```
-
-### Install & Update Packages
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev tar clang bsdmainutils ncdu unzip libleveldb-dev libclang-dev ninja-build -y
-```
-
-### Clone Boundless Repo
-```bash
-git clone https://github.com/boundless-xyz/boundless
-cd boundless
-git checkout release-0.12
-```
-
-### Install Dependecies
-To run a Boundless prover, you'll need the following dependencies:
-* Docker compose
-* GPU Drivers
-* Docker Nvidia Support
-* Rust programming language
-* `Just` command runner
-* CUDA Tollkit
-
-For a quick set up of Boundless dependencies on Ubuntu 22.04 LTS, you can run:
-```bash
-sudo ./scripts/setup.sh
-```
-* It may take time to install due to installing Nvidia GPU drivers
-
-However, you can install some dependecies manually:
-
-```console
-\\ Execute command lines one by one
-
-# Install rustup:
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-. "$HOME/.cargo/env"
-
-# Update rustup:
-rustup update
-
-# Install the Rust Toolchain:
-sudo apt update
-sudo apt install cargo
-
-# Verify Cargo:
-cargo --version
-
-# Install rzup:
-curl -L https://risczero.com/install | bash
-source ~/.bashrc
-
-# Verify rzup:
-rzup --version
-
-# Install RISC Zero Rust Toolchain:
-rzup install rust
-
-# Install cargo-risczero:
-cargo install cargo-risczero
-rzup install cargo-risczero
-
-# Update rustup:
-rustup update
-
-# Install Bento-client:
-cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
-echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-
-# Verify Bento-client:
-bento_cli --version
-
-# Install Boundless CLI:
-cargo install --locked boundless-cli --version 0.12.1
-export PATH=$PATH:/root/.cargo/bin
-source ~/.bashrc
-
-# Verify boundless-cli:
-boundless -h
-
-# Install Just
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-cargo install just
-just --version
-```
-
----
-
-## System Hardware Check
-* In the beginning, to configure your Prover, You need to know what's your GPUs IDs (if multiple GPUs), CPU cores and RAM.
-* Also the following tools are best to monitor your hardware during proving.
-
-### GPU Check:
-* If your Nvidia driver and Cuda tools are installed succesfully, run the following command to see your GPUs status:
-```
-nvidia-smi
-```
-* You can now monitor Nvidia driver & Cuda Version, GPU utilization & memory usage.
-* In the image below, there are four GPUs with **0-3** IDs, you'll need it when adding GPU to your configuration.
-
-![image](https://github.com/user-attachments/assets/26c57f43-0fbf-4068-949c-b2ea31273998)
-
-* Check your system GPUs IDs (e.g. 0 through X):
-```bash
-nvidia-smi -L
-```
-
-### Number of CPU Cores and Threads:
-```
-lscpu
-```
-
-### CPU & RAM check (Realtime):
-To see the status of your CPU and RAM.
-```bash
-htop
-```
-
-### GPU Check (Realtime):
-The best for real-time monitoring your GPUs in a seprated terminal while your prover is proving.
-```bash
-nvtop
-```
-
----
-
-## Configure Prover
-### Single GPU:
-The default `compose.yml` file defines all services within Prover.
-* Default `compose.yml` only supporting single-GPU and default CPU, RAM utilization.
-* Edit `compose.yml` by this command:
-  ```bash
-  nano compose.yml
-  ```
-* The current `compose.yml` is set for `1` GPU by default, you can bypass editing it if you only have one GPU.
-
-### Multiple GPUs
-* 4 GPUs:
-To add more GPUs or modify CPU and RAM sepcified to each GPU, replace the current compose file with my [custom compose.yml](https://github.com/0xmoei/boundless/blob/main/compose.yml) that is using 4 custom GPUs
-
-* More/Less than 4 GPUs:
-Follow this [detailes step by step guide](https://github.com/0xmoei/boundless/blob/main/add-remove-gpu.md) to add or remove the number of 4 GPUs in my custom `compose.yml` file
-
----
-
-## Configure Segment Size
-Larger segment size causes more proving (bento) performance, but require more GPU vRAM. To pick the right `SEGMENT_SIZE` value for your GPU vRAM, see the [official performance optimization page](https://docs.beboundless.xyz/provers/performance-optimization#finding-the-maximum-segment_size-for-gpu-vram).
-
-![image](https://github.com/user-attachments/assets/ef566e27-ce69-4563-a035-87733827126d)
-
-* Note, when you set a value for `SEGMENT_SIZE`, it sets that value for each GPU identically.
-
-### Setting SEGMENT_SIZE
-The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRAM GPUs
-* **If you have a `>20GB` vRAM GPU, skip this step.**
-
-**Configure `SEGMENT_SIZE` in `compose.yml`**
-
-* `SEGMENT_SIZE` in `compose.yml` under the `x-exec-agent-common` service is `21`by default.
-  * Replace `${SEGMENT_SIZE:-21}` with the value itself like `entrypoint: /app/agent -t exec --segment-po2 21`
-  * Your modified `x-exec-agent-common` container will be like this:
-```yaml
+Example of `x-exec-agent-common`:
+```yml
 x-exec-agent-common: &exec-agent-common
   <<: *agent-common
   mem_limit: 4G
-  cpus: 3
+  cpus: 2
   environment:
     <<: *base-environment
     RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
-  entrypoint: /app/agent -t exec --segment-po2 21
- ```
-
-**Alternative method to configure `SEGMENT_SIZE`**: Add to `.env` file
-* Add `SEGMENT_SIZE=21` variable to the preserved network `.env` files like `.env.base`,`.env.broker`, etc. in case want to set our prover network using Method 2 of [Set Network and Wallet](#set-network-and-wallet).
-
----
-
-
-## Enable Memory overcommit
+  entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
 ```
-sudo sysctl -w vm.overcommit_memory=1
-```
-* This ensure your prover won't get panicked at high memory usage
+* You can increase `cpus` and `mem_limit`
 
-
----
-
-## Running Prover
-Boundless is comprised of two major components:
-* `Bento` is the local proving infrastructure. Bento will take the locked orders from `Broker`, prove them and return the result to `Broker`.
-* `Broker` interacts with the Boundless market. `Broker` lock orders from the market to send them to `bento` for proving or send generated proofs from `bento` to the Boundless market.
-
----
-
-## Run Bento
-To get started with a test proof on a new proving machine, let's run `Bento` to benchmark our GPUs:
-```bash
-just bento
-```
-* This will spin up `bento` without the `broker`.
-
-Check the logs :
-```bash
-just bento logs
-```
-
-Run a test proof:
-```bash
-RUST_LOG=info bento_cli -c 32
-```
-* If everything works well, you should see something like the following as `Job Done!`:
-
-![image](https://github.com/user-attachments/assets/a67fdfb0-3d22-4a4a-b47a-247567df0d45)
-
-* If you have multiple GPUs, to check if all your GPUs are utilizing:
-  *  Increase `32` to `1024`/`2048`/`4096`
-  *  Open new terminal with `nvtop` command
-  *  Run the test proof and monitor your GPUs utilization.
-
----
-
-## Get RPC
-* According to what network you want to run your prover on, you'll need an RPC endpoint that supports `eth_newBlockFilter` event.
-  * You can search for `eth_newBlockFilter` in the documents of third-party RPC providers to see if they support it or not.
-
-RPC providers I know they support `eth_newBlockFilter` and I recommend:
-* [Alchemy](https://dashboard.alchemy.com/apps):
-  * Alchemy is the best provider so far
-* [BlockPi](https://dashboard.blockpi.io/):
-  * Support free Base Mainnet, Base Sepolia. ETH sepolia costly as $49
-* [Chainstack](https://console.chainstack.com/):
-  * You have to change the value of `lookback_blocks` from `300` to `0`, because chainstack's free plan doesn't support `eth_getlogs`, so you won't be able to check last 300 blocks for open orders at startup (which is not very important i believe)
-  * Check **Broker Optimization** section to know how to change `lookback_blocks` value in `broker.toml`
-* Run your own RPC node:
-  * This is actually the best way but costly in terms of needing ~550-650 GB Disk
-  * [Guide for ETH Sepolia](https://github.com/0xmoei/geth-prysm-node/blob/main/README.md)
-* Quicknode supports `eth_newBlockFilter` but was NOT compatible with prover somehow idk. It blew up my prover.
-
----
-
-## Set Network and Wallet
-Boundless is currently available on `Base Mainnet`, `Base Sepolia` and `Ethereum Sepolia`.
-### Method 1: Environment Variables
-Before running prover, simply execute these commands:
-```bash
-export RPC_URL="your-rpc-url"
-export PRIVATE_KEY=your-private-key
-```
-* Replace `your-rpc-url` & `your-private-key` without `0x` perfix, and execute the commands.
-* By providing RPC, the prover automatically realizes to connect to which network based on your RPC.
-
-### Method 2: .env files
-* **Note**: I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake)
-
-There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
-
-### Base Mainnet
-* In this step I modify `.env.base`, you can replace it with any of above (Sepolia networks).
-* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia` or ETH Sepolia by modifying `.env.eth-sepolia`
-
-* Configure `.env.base` file:
-```bash
-nano .env.base
-```
-Add the following variables to the `.env.base`.
-* `export RPC_URL=""`:
-  * RPC has to be between `""`
-* `export PRIVATE_KEY=`: Add your EVM wallet private key
-
-![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
-
-* Inject `.env.base` to prover:
-```bash
-source .env.base
-```
-* After each terminal close or before any prover startup, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
-
-### Optional: `.env.broker` with custom enviroment
-`.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
-* I recommend to bypass using it, since you may want to switch between network sometimes. It's easier to swap among those above preserved .env files.
-
-* Create `.env.broker`:
-```bash
-cp .env.broker-template .env.broker
-```
-
-* Configure `.env.broker` file:
-```bash
-nano .env.broker
-```
-Add the following variables to the `.env.broker`.
-* `export RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
-  * RPC has to be between `""`
-* `export PRIVATE_KEY=`: Add your EVM wallet private key
-* Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
-  * `export BOUNDLESS_MARKET_ADDRESS=`
-  * `export SET_VERIFIER_ADDRESS=`
-  * `export VERIFIER_ADDRESS=` (add it to .env manually)
-  * `export ORDER_STREAM_URL=`
- 
-* Inject `.env.broker` changes to prover:
-```
-source .env.broker
-```
-  * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
-
----
-
-## Deposit Stake
-Provers will need to deposit` USDC` to the Boundless Market contract to use as stake when locking orders.
-
-Note that `USDC` has a different address on each network. Refer to the [Deployments page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) for the addresses. USDC can be obtained on testnets from the [Circle Faucet](https://faucet.circle.com/). You can alsi [Bridge](https://superbridge.app/base-sepolia) USDC.
-
-**Add `boundless` CLI to bash:**
-```
-source ~/.bashrc
-```
-
-**Deposit Stake:**
-```
-boundless account deposit-stake STAKE_AMOUNT
-```
-* Ensure you've set `export RPC_URL=` & `export PRIVATE_KEY=` for your prefered network before executing the command.
-
-**Stake Balance:**
-```bash
-boundless account stake-balance
-```
-
----
-
-##  Run Broker
-You can now start `broker` (which runs both `bento` + `broker` i.e. the full proving stack!):
-```bash
-just broker
-```
-Check the total proving logs:
-```bash
-just broker logs
-```
-Check the `broker` logs, which has the most important logs of your `order` lockings and fulfillments:
-```
-docker compose logs -f broker
-
-# For last 100 logs
-docker compose logs -fn 100 broker
-```
-
-![image](https://github.com/user-attachments/assets/c7e8e343-ec4c-4202-b4ba-ef1cf04cedaa)
-
-* You may stuck at `Subscribed to offchain Order stream`, but it starts detecting orders soon.
-
----
-
-#  Broker & Bento (Prover) Optimizations
-There are many factors to be optimized to win in provers competetion where you can read the official guide for [broker](https://docs.beboundless.xyz/provers/broker) or [prover](https://docs.beboundless.xyz/provers/performance-optimization)
-
-## Broker Optimization
-* Broker is one of the containers of the prover, it's not proving itself, it's for onchain activities, and initializing with orders like locking orders or setting amount of stake bids, etc.
-* `broker.toml` has the settings to configure how your broker interact on-chain and compete with other provers.
-
-Copy the template to the main config file:
-```bash
-cp broker-template.toml broker.toml
-```
-
-Edit broker.toml file:
-```bash
-nano broker.toml
-```
-* You can see an example of the official `broker.toml` [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
-
-### Increasing Lock-in Rate
-Once your broker is running, before the gpu-based prover gets into work, broker must compete with other provers to lock-in the orders. Here is how to optimize broker to lock-in faster than other provers:
-
-1. Decreasing the `mcycle_price` would tune your Broker to `bid` at lower prices for proofs.
-* Once an order detected, the broker runs a preflight execution to estimate how many `cycles` the request needs. As you see in the image, a prover proved orders with millions or thousands of cycles.
-* `mcycle_price` is actually price of a prover for proving each 1 million cycles. Final price = `mcycle_price` x `cycles`
-* The less you set `mcycle_price`, the higher chance you outpace other provers.
-
-![image](https://github.com/user-attachments/assets/fab9cc79-362f-4a43-a461-258ffe0bfc1a)
-
-
-* To get idea of what `mcycle_price` are other provers using, find an order in [explorer](https://explorer.beboundless.xyz/orders/0xc2db89b2bd434ceac6c74fbc0b2ad3a280e66db024d22ad3) with your prefered network, go to details page of the order and look for `ETH per Megacycle`
-
-![image](https://github.com/user-attachments/assets/6dd0c012-bff7-4a98-97ae-3cdfb288bc43)
-
-
-2. Increasing `lockin_priority_gas` to consume more gas to outrun other bidders. You might need to first remove `#` to uncomment it's line, then set the gas. It's based on Gwei.
-
-### Other settings in `broker.toml`
-Read more about them in [official doc](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
-* `peak_prove_khz`: Maximum number of cycles per second (in kHz) your proving backend can operate.
-  * You can set the `peak_prove_khz` by following the previous step [(Benchmarking Bento)](https://github.com/0xmoei/boundless/tree/main#benchmarking-bento)
- 
-* `max_mcycle_limit`: Maximum cycles ( mcycle= million cycles) of an order to be accepted
-  * Orders with cycles more than the set parameter will be spikked after preflight
-  * By default, it's set as `8000` mcycles (8 billion cycles)
-  * Provers with limited resources should reduce this number as not to use execution resources on jobs they are unlikely to be able to fulfill. Provers with more resources may consider keeping this value. New mainnet proofs, at around 60B cycles, will exceed most reasonable caps.
- 
-* `min_deadline`: Min seconds left before the deadline of the order to consider bidding on a request or not.
-  * Requesters set a deadline for their order, if a prover can't prove during this, it gets slashed.
-  * By setting the min deadline, your prover won't accept requests with a deadline less than that.
-  * As in the following image of an order in [explorer](https://explorer.beboundless.xyz/), the order fullfilled after the deadline and prover got slashed because of the delay in delivering
- 
- ![image](https://github.com/user-attachments/assets/bc497b61-01fe-451a-aeb1-de35efca56af)
-
-* `max_concurrent_proofs`: Maximum number of orders the can lock. Increasing it, increase the ability to lock more orders, but if you prover cannot prove them in the specified deadline, your stake assets will get slashed.
-  * When the numbers of running proving jobs reaches that limit, the system will pause and wait for them to get finished instead of locking more orders.
-  * It's set as `2` by default, and really depends on your GPU and your configuration, you have to test it out if you want to inscrease it.
-
-* `max_concurrent_preflights`: Maximum number of orders to concurrently work on pricing (preflight execution)
-  * Set it to at most `n - 1`, where `n` is the *number of execution agents*. This ensures you will have execution capacity reserved by proving.
-  * To increase the *number of execution agents*, procees to step [Boost preflight execution](#boost-preflight-execution)
-  * **To enable it, make sure to remove `#` behind it**
- 
-* `order_pricing_priority`: Determines how orders are prioritized for pricing (preflight)
-  *  "random": Process orders in random order
-  *  "observation_time": Process orders in the fastest way (as soon as broker sees them)
-  *  "shortest_expiry": Process orders by shortest expiry first (earliser deadline)
-  *  **To enable it, make sure to remove `#` behind it**
-
-* `order_commitment_priority`: Determines how orders are prioritized when committing to prove them (It's for when you may locked two orders concurrently and want to choose which one to prove first)
-  * "random": Process orders in random order
-  * "shortest_expiry": Process orders by shortest expiry first
-  * **To enable it, make sure to remove `#` behind it**
- 
----
-
-## Boost preflight execution
-### What is Pre-Flight Execution?
-Pre-flight execution is where *Agents* start pricing and estimating the gas cost of an *order* to see if the prover should *lock* it.
-* These agents are **CPU-based**, and their performance depends on single-threaded CPU power.
-
-### Role of `exec_agent` Services
-In your `compose.yml` file, the `exec_agent` services handle these pre-flight executions. Running multiple `exec_agent` services lets you process several orders at once, speed up you to evaluate and lock more orders.
-
-* Key Benefit: More `exec_agent` services mean more concurrent pre-flight executions.
-* Default Setting: The default configuration includes 2 `exec_agent` services.
-* Scaling Up: Increase number of `exec_agent` for more simultaneous executions.
-* Note: Match agent count to CPU/memory capacity.
-
-### To add more `exec_agent`
-**1. Edit `compose.yml`**
-* Default 2 `exec_agent` services in `compose.yml`:
-```
+Example of `exec_agent`:
+```yaml
   exec_agent0:
     <<: *exec-agent-common
 
   exec_agent1:
     <<: *exec-agent-common
 ```
+* To add more agents, just add more lines with incremented numbers
 
-* Add more agents:
-```yaml
-exec_agent2:
-  <<: *exec-agent-common
-```
-* You can increase numbering (e.g., exec_agent3) to add even more agents.
-
-**2. Update `x-broker-common` service in `compose.yml`:**
-* Include new agents in `depends_on` to link agents to broker:
-```yaml
-depends_on:
-  - exec_agent2
-```
-
-**3. Increase the number of `max_concurrent_preflights` in `broker.toml` based on the numbers of your agents
-* Set it to at most `n - 1`, where `n` is the *number of execution agents*. This ensures you will have execution capacity reserved by proving.
-
-Note:
-* There is also a `x-exec-agent-common` service in `compose.yml` controling the main settings of all Agents like CPU and memory.
-* Default CPU/Memory specified for each agent is enough, however you can increase them.
-
-
----
-
-## Bento Optimizations:
-
-## Segment Size
-The most important factor in optimizing `Bento` and speeding up generating proofs is **Segment Size**. Ensure you followed step [Configure Segment Size](#configure-segment-size) to pick a right Segment Size based on your GPUs.
-
-## Boost Proving GPUs
-* `gpu_prove_agent` service in your `compose.yml` handles proving the orders after they got locked by utilizing your GPUs.
-* In single GPUs, you can increase performance by increasing CPU/RAM of GPU agents.
-* The default number of its CPU and RAM is fine but if you have good system spec, you can increase them for each GPU.
-* You see smth like below code as your `gpu_prove_agentX` service in your `compose.yml` where you can increase the memory and cpu cores of each gpu agent.
+## Improve GPU Proof Efficiency
+* The `gpu_prove_agent` service in `compose.yml` is responsible for using the GPU to prove orders.
+* For single GPU setups, you can improve performance by increasing CPU/RAM for each GPU agent.
+* The default CPU/RAM is sufficient, but you can increase it if you have better hardware.
+* You will see the following `gpu_prove_agentX` service configuration, where you can increase memory and CPU for each GPU agent.
    ```yml
      gpu_prove_agent0:
        <<: *agent-common
@@ -654,85 +156,315 @@ The most important factor in optimizing `Bento` and speeding up generating proof
                  device_ids: ['0']
                  capabilities: [gpu]
    ```
-* While the default CPU/RAM for each GPU is enough, for single GPUs, you can increase them to increase efiiciency, but don't maximize and always keep some CPU/RAML for other jobs.
+* Although the default CPU/RAM is sufficient, you can increase it for single GPU setups, but do not use all resources—leave some for other tasks.
 
----
-
-## Benchmarking Bento
+## Bento Benchmark
 Install psql:
 ```bash
-sudo apt update
-sudo apt install postgresql-client
+apt update
+apt install postgresql-client
 psql --version
 ```
 
-**1. Recommended: Benchmark by simulating an order id: (make sure Bento is running):**
+**1. Recommended: Simulate benchmark with order ID (make sure Bento is running):**
 ```bash
 boundless proving benchmark --request-ids <IDS>
 ```
-* You can use the order IDs listed [here](https://explorer.beboundless.xyz/orders)
-* You can add multiples by adding comma-seprated ones.
-* Ensure you've set `export RPC_URL=` & `export PRIVATE_KEY=` for your prefered network before benchamrking an order ID.
-* For older orders, your RPC should support high block ranges (alchemy has low block range), so you can set a public RPC before benchmarking
+* Get order IDs from [here](https://explorer.beboundless.xyz/orders)
+* Separate multiple IDs with commas
+* It is recommended to select orders of different sizes and programs, favoring large orders for more representative benchmarks
 
-![image](https://github.com/user-attachments/assets/04ca61f7-a658-4cb8-b09b-928bbe4694d4)
+* As shown below, the prover estimates it can handle about 430,000 cycles/s (about 430 kHz).
+* Set a value slightly lower than the recommended value in `peak_prove_khz` in `broker.toml` (explained later)
 
-* As in the image above, the prover is estimated to handle ~430,000 cycles per second (~430 khz). 
-* Use a lower amount of the recommented `peak_prove_khz` in your `broker.toml` (I explain it more in the next step)
+> You can use the `nvtop` command in a new terminal to monitor GPU usage
 
-> You can use `nvtop` command in a seprated terminal to check your GPU utilizations.
-
-**2. Benchmark using Harness Test**
-* Optionally you can benchmark GPUs by a ITERATION_COUNT:.
+**2. Benchmark with Harness Test**
+* You can also use ITERATION_COUNT to benchmark the GPU:
 ```
 RUST_LOG=info bento_cli -c <ITERATION_COUNT>
 ```
-`<ITERATION_COUNT>` is the number of times the synthetic guest is executed. A value of `4096` is a good starting point, however on smaller or less performant hosts, you may want to reduce this to `2048` or `1024` while performing some of your experiments. For functional testing, `32` is sufficient.
+`<ITERATION_COUNT>` is the number of synthetic task executions. Start with `4096`, use `2048` or `1024` for lower performance, and `32` for functional testing.
 
-* Check `khz` &  `cycles` proved in the harness test
+* Check the `khz` and `cycles` of the harness test
 ```
-sudo ./scripts/job_status.sh JOB_ID
+bash scripts/job_status.sh JOB_ID
 ```
-* replace `JOB_ID` with the one prompted to you when running a test.
-* Now you get the `hz` which has to be devided by 1000x to be in `khz` and the `cycles` it proved.
-* If got error `not_found`, it's cuz you didn't create `.env.broker` and the script is using the `SEGMENT_SIZE` value in `.env.broker` to query your Segment size, do `cp .env.broker-template .env.broker` to fix.
+* `JOB_ID` is the number prompted during the test.
+* The obtained `hz` divided by 1000 is `khz`, and the number of cycles proved.
+* If you get a `not_found` error, it means `.env.broker` was not created. The script uses the `SEGMENT_SIZE` in `.env.broker` to query the segment size. You can fix it with `cp .env.broker-template .env.broker`.
 
 ---
 
-# Safe Update or Stop Prover
-### 1. Check locked orders
-Ensure either through the `broker` logs or [through indexer page of your prover](https://explorer.beboundless.xyz/provers/) that your broker does not have any incomplete locked orders before stopping or update, othervise you might get slashed for your staked assets.
+## Broker Optimization
 
-* Optionally to not accept more order requests by your prover temporarily, you can set `max_concurrent_proofs` to `0`, wait for `locked` orders to be `fulfilled`, then go through the next step to stop the node.
+* The broker is a container of the prover, responsible for on-chain interaction, order locking, setting staking bids, etc.
+* The `broker.toml` configures how the broker interacts on-chain and competes with other provers.
 
-### 2. Stop the broker and optionally clean the database
+Copy the template as the main configuration file:
 ```bash
-# Optional, no need if you don't want to upgrade the node's repository
+cp broker-template.toml broker.toml
+```
+
+Edit broker.toml:
+```bash
+nano broker.toml
+```
+* Official `broker.toml` example is [here](https://github.com/boundless-xyz/boundless/blob/main/broker-template.toml)
+
+### Increase Lock Rate
+After the broker is running, before GPU proving, it needs to compete with other provers to lock orders. Optimization methods:
+
+1. Lower `mcycle_price` to let the broker bid at a lower price.
+* After an order is detected, the broker preflights to estimate the required `cycles`. As shown, the prover proves orders of millions/thousands of cycles.
+* `mcycle_price` is the price per million cycles. Final price = `mcycle_price` x `cycles`
+* Setting a lower `mcycle_price` increases the chance of winning the bid.
+
+* You can check other provers' `mcycle_price` on the [explorer](https://explorer.beboundless.xyz/orders/0xc2db89b2bd434ceac6c74fbc0b2ad3a280e66db024d22ad3) in the order details page under `ETH per Megacycle`
+
+2. Increase `lockin_priority_gas` to spend more gas to bid first. Remove the `#` comment and set the gas in Gwei.
+
+### Other `broker.toml` Settings
+See [official documentation](https://docs.beboundless.xyz/provers/broker#settings-in-brokertoml)
+* `peak_prove_khz`: Maximum cycles per second (kHz) for the proof backend.
+  * Set according to the [Bento Benchmark](https://github.com/0xmoei/boundless/tree/main#benchmarking-bento) above
+
+* `max_concurrent_proofs`: Number of orders that can be locked simultaneously. Increasing this value allows more orders to be locked, but if you cannot complete the proofs before the deadline, your stake will be forfeited.
+  * When the limit is reached, the system will pause new orders and wait for existing proofs to complete.
+  * Default is `2`, depending on GPU and configuration. Test and adjust accordingly.
+
+* `min_deadline`: Minimum remaining seconds for an order when bidding.
+  * Orders have a deadline. If the prover cannot complete the proof before this time, the stake will be forfeited.
+  * After setting the minimum deadline, the prover will not accept orders with less than this time remaining.
+  * As shown, if the order is completed after the deadline, the prover is penalized for being late.
+
+---
+
+## Multiple Brokers
+You can run multiple brokers with a single Bento client to generate proofs on different networks.
+* Your configuration may differ from mine. You can ask AI chat for help. Here is my configuration example:
+* Files to modify: `compose.yml`, `broker.toml`, `.env` files (such as `.env.base-sepolia`)
+
+### Modify `compose.yml`
+
+**Step 1: Add `broker2` service**:
+
+In the services section, add `broker2` after the existing `broker` service. Its configuration is similar to the original `broker`, but uses a different database and config file.
+* Changes needed:
+ * Name changed to `broker2`
+ * `source: ./broker2.toml`
+ * `broker2-data:/db/`
+ * `--db-url` changed to `'sqlite:///db/broker2.db'`
+
+**Step 2: Multiple broker environment variables (.env files):**
+
+Originally, the `.env` file (such as `.env.base`) was used to set the network. Now, you need to specify the corresponding `.env` file for each broker (such as `broker`, `broker1`, `broker3`) in `compose.yml`.
+* After the `volumes` section of each broker service, add:
+```
+    env_file:
+      - .env.base
+```
+
+**Step 3: Add `broker2-data` volume**:
+* At the end of `compose.yml`, add a new volume in the `volumes` section:
+
+For example, the configuration for `broker` and `broker2` services supporting Base and ETH Sepolia networks is as follows:
+
+```yaml
+  broker:
+    restart: always
+    depends_on:
+      - rest_api
+      - gpu_prove_agent0
+      - exec_agent0
+      - exec_agent1
+      - aux_agent
+      - snark_agent
+      - redis
+      - postgres
+    profiles: [broker]
+    build:
+      context: .
+      dockerfile: dockerfiles/broker.dockerfile
+    mem_limit: 2G
+    cpus: 2
+    stop_grace_period: 3h
+    volumes:
+      - type: bind
+        source: ./broker.toml
+        target: /app/broker.toml
+      - broker-data:/db/
+    network_mode: host
+    env_file:
+      - .env.base
+    environment:
+      RUST_LOG: ${RUST_LOG:-info,broker=debug,boundless_market=debug}
+    entrypoint: /app/broker --db-url 'sqlite:///db/broker.db' --set-verifier-address ${SET_VERIFIER_ADDRESS} --boundless-market-address ${BOUNDLESS_MARKET_ADDRESS} --config-file /app/broker.toml --bento-api-url http://localhost:8081
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  broker2:
+    restart: always
+    depends_on:
+      - rest_api
+      - gpu_prove_agent0
+      - exec_agent0
+      - exec_agent1
+      - aux_agent
+      - snark_agent
+      - redis
+      - postgres
+    profiles: [broker]
+    build:
+      context: .
+      dockerfile: dockerfiles/broker.dockerfile
+    mem_limit: 2G
+    cpus: 2
+    stop_grace_period: 3h
+    volumes:
+      - type: bind
+        source: ./broker2.toml
+        target: /app/broker.toml
+      - broker2-data:/db/
+    network_mode: host
+    env_file:
+      - .env.eth-sepolia
+    environment:
+      RUST_LOG: ${RUST_LOG:-info,broker=debug,boundless_market=debug}
+    entrypoint: /app/broker --db-url 'sqlite:///db/broker2.db' --set-verifier-address ${SET_VERIFIER_ADDRESS} --boundless-market-address ${BOUNDLESS_MARKET_ADDRESS} --config-file /app/broker.toml --bento-api-url http://localhost:8081
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+volumes:
+  redis-data:
+  postgres-data:
+  minio-data:
+  grafana-data:
+  broker-data:
+  broker2-data:
+```
+
+### Modify `broker.toml`
+Each broker instance needs a separate `broker.toml` file (such as `broker.toml`, `broker2.toml`, etc.)
+
+To create a new config file for the second broker:
+```bash
+# Copy from existing broker config
+cp broker.toml broker2.toml
+ 
+# Or create from template
+cp broker-template.toml broker2.toml
+```
+Then modify the configuration for each network. Note:
+
+* `peak_prove_khz` is shared among all brokers.
+  * For example, if the benchmark is `500kHz`, the total sum in all configs must not exceed `500kHz`.
+  * Example: `broker.toml`: `peak_prove_khz = 250`, `broker2.toml`: `peak_prove_khz = 250`
+
+* `max_concurrent_preflights` limits the number of pricing tasks a broker can run concurrently. The total for all brokers must not exceed the number of `exec_agent` services in `compose.yml`.
+  * If you have two `exec_agent` (e.g., `exec_agent0` and `exec_agent1`), the total `max_concurrent_preflights` for all brokers must not exceed 2.
+
+* `max_concurrent_proofs`
+  * Unlike `peak_prove_khz`, `max_concurrent_proofs` is set independently for each broker and controls the number of proof tasks a single broker can handle simultaneously.
+  * If you have only one GPU, you can usually only handle one proof at a time. Set `max_concurrent_proofs = 1`.
+
+ * `lockin_priority_gas`: Set an appropriate gwei for each network
+
+---
+
+# Safely Update or Stop Prover
+### 1. Check Locked Orders
+Check via `broker` logs or the [prover's indexer page](https://explorer.beboundless.xyz/provers/) to ensure the broker has no unfinished locked orders. Otherwise, you may be penalized when stopping or updating.
+
+* To temporarily stop accepting new orders, set `max_concurrent_proofs` to `0`. After all locked orders are completed, stop the node.
+
+### 2. Stop broker and optionally clean database
+```bash
+# Optional, skip if not upgrading the node repo
 just broker clean
  
-# Or stop the broker without cleaning volumes
+# Or just stop the broker without cleaning the data volume
 just broker down
 ```
 
-### 3. Update to the new version
-See [releases](https://github.com/boundless-xyz/boundless/releases) for latest tag to use.
+### 3. Update to new version
+Latest tag is in [releases](https://github.com/boundless-xyz/boundless/releases)
 ```bash
 git checkout <new_version_tag>
 # Example: git checkout v0.10.0
 ```
 
-### 4. Start the broker with the new version
+### 4. Start new version broker
 ```bash
 just broker
 ```
 
 ---
 
+### Network Configuration Method 2: .env File
+**Recommended** to use Method 1, skip this step and go directly to [Stake USDC](#stake-usdc). For Method 2, see below.
+
+* The official configuration has three `.env` files for each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
+
+### Base Mainnet
+* Here, `.env.base` is used as an example. For other networks, modify the corresponding file.
+* Currently, Base mainnet order demand is low. You can participate in Base Sepolia or ETH Sepolia by modifying `.env.base-sepolia` or `.env.eth-sepolia`.
+
+* Configure the `.env.base` file:
+```bash
+nano .env.base
+```
+Add the following variables:
+* `export RPC_URL=""`:
+  * The RPC address must be in double quotes
+* `export PRIVATE_KEY=`: Fill in your EVM wallet private key
+
+* Inject `.env.base` into the prover:
+```bash
+source .env.base
+```
+* Each time you close the terminal or start the prover, you need to re-inject the network configuration.
+
+### Optional: Custom Environment `.env.broker`
+`.env.broker` is similar to the above `.env` files but allows more options. When using, refer to the [deployment page](https://docs.beboundless.xyz/developers/smart-contracts/deployments) to replace contract addresses for each network.
+* Not recommended, as switching networks is easier by changing the above `.env` files directly.
+
+* Create `.env.broker`:
+```bash
+cp .env.broker-template .env.broker
+```
+
+* Configure the `.env.broker` file:
+```bash
+nano .env.broker
+```
+Add the following variables:
+* `export RPC_URL=""`: Base network rpc url, recommended to use third-party services like Alchemy
+  * The RPC address must be in double quotes
+* `export PRIVATE_KEY=`: Fill in your EVM wallet private key
+* Other variables see [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
+  * `export BOUNDLESS_MARKET_ADDRESS=`
+  * `export SET_VERIFIER_ADDRESS=`
+  * `export VERIFIER_ADDRESS=` (add manually)
+  * `export ORDER_STREAM_URL=`
+ 
+* Inject `.env.broker` into the prover:
+```
+source .env.broker
+```
+  * After closing the terminal, you need to re-inject the network configuration.
+
+---
+
 # Debugging
 ## Error: Too many open files (os error 24)
-During the build process of `just broker`, you might endup to `Too many open files (os error 24)` error.
+You may encounter the `Too many open files (os error 24)` error during `just broker` build.
 
-### Fix:
+### Solution:
 ```
 nano /etc/security/limits.conf
 ```
@@ -745,7 +477,7 @@ nano /etc/security/limits.conf
 ```
 nano /lib/systemd/system/docker.service
 ```
-* Add or modify the following under `[Service]` section.
+* In the `[Service]` section, add or modify:
 ```
 LimitNOFILE=65535
 ```
@@ -755,15 +487,12 @@ systemctl daemon-reload
 systemctl restart docker
 ```
 
-* Now restart terminal and rerun your **inject network** command, then run `just broker`
+* Restart the terminal, re-inject the network configuration, and run `just broker` again
 
 
-## Getting tens of `Locked` orders on prover's [explorer](https://explorer.beboundless.xyz/)
-* It's due to RPC issues, check your logs.
-* You can increase `txn_timeout = 45` in `broker.toml` file to increase the seconds of transactions confirmations.
-
-
-
+## Many `Locked` Orders on Prover [explorer](https://explorer.beboundless.xyz/)
+* Mostly due to RPC issues, please check the logs.
+* In the `broker.toml` file, set `txn_timeout = 45` to increase the transaction confirmation timeout.
 
 
 
