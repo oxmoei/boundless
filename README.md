@@ -311,24 +311,21 @@ The default value of `SEGMENT_SIZE` is `21` which is compatible with `>20GB` vRA
 **Configure `SEGMENT_SIZE` in `compose.yml`**
 
 * `SEGMENT_SIZE` in `compose.yml` under the `x-exec-agent-common` service is `21`by default.
-  * You can change the value of `SEGMENT_SIZE` directly in `compose.yml` by adding `SEGMENT_SIZE: 21` in `environment` section of `x-exec-agent-common` container.
+  * Replace `${SEGMENT_SIZE:-21}` with the value itself like `entrypoint: /app/agent -t exec --segment-po2 21`
   * Your modified `x-exec-agent-common` container will be like this:
-  ```yaml
-  x-exec-agent-common: &exec-agent-common
+```yaml
+x-exec-agent-common: &exec-agent-common
   <<: *agent-common
   mem_limit: 4G
   cpus: 3
   environment:
     <<: *base-environment
     RISC0_KECCAK_PO2: ${RISC0_KECCAK_PO2:-17}
-    SEGMENT_SIZE: 21
-  entrypoint: /app/agent -t exec --segment-po2 ${SEGMENT_SIZE:-21}
-  ```
-  > `entrypoint` uses `${SEGMENT_SIZE:-21}`, a shell parameter expansion that sets the segment size to 21 by default, unless `SEGMENT_SIZE` variable is defined in the container’s `environment`.
+  entrypoint: /app/agent -t exec --segment-po2 21
+ ```
 
-**Two alternative methods to configure `SEGMENT_SIZE`**
-* Add `SEGMENT_SIZE=21` variable to the preserved network `.env` files like `.env.base`,`.env.broker`, etc. in case want to use them.
-* Replace `${SEGMENT_SIZE:-21}` in `compose.yml` with the value itself like `entrypoint: /app/agent -t exec --segment-po2 21`
+**Alternative method to configure `SEGMENT_SIZE`**: Add to `.env` file
+* Add `SEGMENT_SIZE=21` variable to the preserved network `.env` files like `.env.base`,`.env.broker`, etc. in case want to set our prover network using Method 2 of [Set Network and Wallet](#set-network-and-wallet).
 
 ---
 
@@ -393,10 +390,63 @@ Before running prover, simply execute these commands:
 export RPC_URL="your-rpc-url"
 export PRIVATE_KEY=your-private-key
 ```
-* Replace `your-rpc-url` & `your-private-key` without `0x` perfix, and execute the commands
+* Replace `your-rpc-url` & `your-private-key` without `0x` perfix, and execute the commands.
+* By providing RPC, the prover automatically realizes to connect to which network based on your RPC.
 
 ### Method 2: .env files
-I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake), otherwise you can follow method 2 by going [here](https://github.com/0xmoei/boundless/tree/main?tab=readme-ov-file#network-configurations-method-2-env-files)
+* **Note**: I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake)
+
+There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
+
+### Base Mainnet
+* In this step I modify `.env.base`, you can replace it with any of above (Sepolia networks).
+* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia` or ETH Sepolia by modifying `.env.eth-sepolia`
+
+* Configure `.env.base` file:
+```bash
+nano .env.base
+```
+Add the following variables to the `.env.base`.
+* `export RPC_URL=""`:
+  * RPC has to be between `""`
+* `export PRIVATE_KEY=`: Add your EVM wallet private key
+
+![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
+
+* Inject `.env.base` to prover:
+```bash
+source .env.base
+```
+* After each terminal close or before any prover startup, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
+
+### Optional: `.env.broker` with custom enviroment
+`.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
+* I recommend to bypass using it, since you may want to switch between network sometimes. It's easier to swap among those above preserved .env files.
+
+* Create `.env.broker`:
+```bash
+cp .env.broker-template .env.broker
+```
+
+* Configure `.env.broker` file:
+```bash
+nano .env.broker
+```
+Add the following variables to the `.env.broker`.
+* `export RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
+  * RPC has to be between `""`
+* `export PRIVATE_KEY=`: Add your EVM wallet private key
+* Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
+  * `export BOUNDLESS_MARKET_ADDRESS=`
+  * `export SET_VERIFIER_ADDRESS=`
+  * `export VERIFIER_ADDRESS=` (add it to .env manually)
+  * `export ORDER_STREAM_URL=`
+ 
+* Inject `.env.broker` changes to prover:
+```
+source .env.broker
+```
+  * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
 ---
 
@@ -665,63 +715,6 @@ git checkout <new_version_tag>
 ```bash
 just broker
 ```
-
----
-
-### Network Configurations Method 2: .env files
-I **recommend** to go through **Method 1** and skip this step to [Deposit Stake](#deposit-stake), otherwise you can follow method 2 by going here
-
-* There are three `.env` files with the official configurations of each network (`.env.base`, `.env.base-sepolia`, `.env.eth-sepolia`).
-
-### Base Mainnet
-* In this step I modify `.env.base`, you can replace it with any of above (Sepolia networks).
-* Currently, Base mainnet has very low demand of orders, you may want to go for Base Sepolia by modifying `.env.base-sepolia` or ETH Sepolia by modifying `.env.eth-sepolia`
-
-* Configure `.env.base` file:
-```bash
-nano .env.base
-```
-Add the following variables to the `.env.base`.
-* `export RPC_URL=""`:
-  * RPC has to be between `""`
-* `export PRIVATE_KEY=`: Add your EVM wallet private key
-
-![image](https://github.com/user-attachments/assets/3b41c3b7-8f79-4067-9117-41ac68b41946)
-
-* Inject `.env.base` to prover:
-```bash
-source .env.base
-```
-* After each terminal close or before any prover startup, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
-
-### Optional: `.env.broker` with custom enviroment
-`.env.broker` is a custom environment file same as previous `.env` files but with more options to configure, you can also use it but you have to refer to [Deployments](https://docs.beboundless.xyz/developers/smart-contracts/deployments) page to replace contract addresses of each network.
-* I recommend to bypass using it, since you may want to switch between network sometimes. It's easier to swap among those above preserved .env files.
-
-* Create `.env.broker`:
-```bash
-cp .env.broker-template .env.broker
-```
-
-* Configure `.env.broker` file:
-```bash
-nano .env.broker
-```
-Add the following variables to the `.env.broker`.
-* `export RPC_URL=""`: To get Base network rpc url, Use third-parties .e.g Alchemy or paid ones.
-  * RPC has to be between `""`
-* `export PRIVATE_KEY=`: Add your EVM wallet private key
-* Find the value of following variables [here](https://docs.beboundless.xyz/developers/smart-contracts/deployments):
-  * `export BOUNDLESS_MARKET_ADDRESS=`
-  * `export SET_VERIFIER_ADDRESS=`
-  * `export VERIFIER_ADDRESS=` (add it to .env manually)
-  * `export ORDER_STREAM_URL=`
- 
-* Inject `.env.broker` changes to prover:
-```
-source .env.broker
-```
-  * After each terminal close, you have to run this to inject the network before running `broker` or doing `Deposit` commands (both in next steps).
 
 ---
 
