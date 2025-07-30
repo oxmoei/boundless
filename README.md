@@ -65,7 +65,7 @@ For automated installation and Prover management, you can use this script to aut
 git clone https://github.com/oxmoei/boundless.git && cd boundless
 
 # Run the installation script
-chmod +x install_prover.sh && sudo ./install_prover.sh
+chmod +x install_prover.sh && ./install_prover.sh
 ```
 
 * The installation process may take a while as it needs to install drivers and build large files. Please be patient.

